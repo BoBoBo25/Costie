@@ -1,0 +1,2012 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Costie</title>
+<meta name="theme-color" content="#EAE3D5">
+<meta name="description" content="厨房成本计算：食材价钱、每道菜的成本和照片。">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Costie">
+<style>
+:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0;font:14px/1.4 system-ui,-apple-system,sans-serif}
+img{max-width:100%}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=IM+Fell+English&family=Caveat:wght@500&family=Long+Cang&family=Noto+Serif+SC:wght@400;600;700&display=swap">
+<style>
+/* Layout: one-column phone app on grey paper; off-white sheets slide up from the bottom; fixed tab bar. */
+:root{
+  --paper:#e8e6e1; --card:#f8f7f3; --ink:#2b231e; --muted:#8b827b; --line:#dcd8d0;
+  --title:#5B4433; --accent:#c4914a; --accent-ink:#ffffff; --accent-soft:#efe3cf; --danger:#b4533c; --scrim:rgba(40,34,30,.38);
+  --mono:"Courier Prime","Courier New",Courier,monospace;
+  --cjk:"Noto Serif SC","Songti SC","SimSun",serif;
+  --type:var(--mono),var(--cjk);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#1c1a18; --card:#282522; --ink:#eee8df; --muted:#9e958c; --line:#3a3632;
+  --title:#D9C4AE; --accent:#d4a462; --accent-ink:#1c1a18; --accent-soft:#3a3025; --danger:#e07a5f; --scrim:rgba(0,0,0,.55); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#1c1a18; --card:#282522; --ink:#eee8df; --muted:#9e958c; --line:#3a3632;
+  --title:#D9C4AE; --accent:#d4a462; --accent-ink:#1c1a18; --accent-soft:#3a3025; --danger:#e07a5f; --scrim:rgba(0,0,0,.55); color-scheme:dark}
+
+*{box-sizing:border-box}
+html,body{min-height:100%}
+body{
+  background:var(--paper); color:var(--ink); font-family:var(--type); font-size:15px; line-height:1.55;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .45 0 0 0 0 .4 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  -webkit-tap-highlight-color:transparent;
+}
+button,input,select,textarea{font:inherit;color:inherit}
+.wrap{max-width:520px;margin:0 auto;padding-left:max(18px,env(safe-area-inset-left,0px));padding-right:max(18px,env(safe-area-inset-right,0px));padding-block:20px calc(110px + env(safe-area-inset-bottom,0px))}
+
+header.top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.round{width:46px;height:46px;border-radius:50%;border:1px solid var(--line);background:transparent;display:grid;place-items:center;font-weight:700;cursor:pointer}
+.hero{text-align:center;padding:14px 0 22px}
+.hero h1{text-wrap:balance;overflow-wrap:anywhere;font-family:"Noto Serif SC","Songti SC","SimSun",serif;font-weight:700;font-size:clamp(30px,9vw,42px);letter-spacing:.16em;text-indent:.16em;margin:0;line-height:1.15;color:var(--title);filter:url(#copy)}
+feFlood.ink{flood-color:var(--title)}
+html.scene-on feFlood.ink{flood-color:#5B4433}
+html.en .hero h1{font-family:"IM Fell English","Noto Serif SC",Georgia,serif;font-weight:400;font-size:clamp(34px,10vw,46px);letter-spacing:.04em;text-indent:.04em;filter:url(#press)}
+.hero .sub{color:var(--muted);font-family:var(--mono);font-size:17px;letter-spacing:.06em;margin-top:6px}
+.hero .cn{font-size:13px;color:var(--muted);letter-spacing:.3em;margin-top:2px}
+
+.section{display:flex;flex-direction:column;gap:12px;margin-bottom:28px}
+.sec-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.sec-head h2{margin:0;font-family:var(--mono);font-size:19px;font-weight:700;letter-spacing:.04em}
+.sec-head h2 small{font-family:var(--cjk);font-weight:400;font-size:13px;color:var(--muted);margin-left:8px;letter-spacing:.15em}
+.link{background:none;border:0;color:var(--accent);font-family:var(--mono);font-weight:700;cursor:pointer;padding:6px 0}
+
+.panel{background:var(--card);border-radius:22px;padding:18px}
+.label{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.label .zh{font-family:var(--cjk);letter-spacing:.1em;text-transform:none;margin-left:6px}
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.row{display:grid;gap:10px}
+.row.two{grid-template-columns:1fr 1fr}
+.row.qty{grid-template-columns:1fr 92px}
+input,select,textarea{width:100%;background:var(--paper);border:1px solid transparent;border-radius:12px;padding:11px 12px;font-family:var(--type);font-size:16px;outline:none;min-width:0}
+input:focus,select:focus,textarea:focus{border-color:var(--accent)}
+textarea{resize:vertical;min-height:70px}
+.num{font-variant-numeric:tabular-nums}
+
+.qc-result{display:flex;align-items:baseline;justify-content:space-between;border-top:1px dashed var(--line);margin-top:14px;padding-top:14px;gap:10px;flex-wrap:wrap}
+.qc-result .big{font-family:var(--mono);font-weight:700;font-size:30px}
+.qc-result .hint{color:var(--muted);font-size:13px}
+
+.list{display:flex;flex-direction:column;gap:10px}
+.item{display:flex;align-items:center;gap:14px;background:var(--card);border-radius:18px;padding:12px 14px;border:0;text-align:left;width:100%;cursor:pointer}
+.item:focus-visible,.btn:focus-visible,.round:focus-visible,.tab:focus-visible,.link:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.thumb{width:58px;height:58px;border-radius:14px;background:var(--paper);flex:none;display:grid;place-items:center;overflow:hidden;color:var(--muted);font-family:var(--mono);font-weight:700;font-size:20px}
+.thumb img{width:100%;height:100%;object-fit:cover}
+.item .body{flex:1;min-width:0}
+.item .name{font-weight:600;font-size:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.item .meta{color:var(--muted);font-size:13px;font-variant-numeric:tabular-nums}
+.item .price{font-family:var(--mono);font-weight:700;font-size:18px;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.item .price small{display:block;font-weight:400;font-size:12px;color:var(--muted)}
+.pill{display:inline-block;font-family:var(--mono);font-size:11px;padding:1px 8px;border-radius:99px;background:var(--accent-soft);color:var(--ink);margin-left:6px;vertical-align:2px}
+.pill.warn{background:transparent;border:1px solid var(--danger);color:var(--danger)}
+
+.empty{text-align:center;padding:30px 18px;color:var(--muted);background:var(--card);border-radius:22px;display:flex;flex-direction:column;gap:12px;align-items:center}
+.empty p{margin:0;max-width:30ch}
+
+.btn{border:0;border-radius:999px;padding:14px 20px;background:var(--accent);color:var(--accent-ink);font-family:var(--mono);font-weight:700;font-size:17px;letter-spacing:.04em;cursor:pointer;width:100%}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn.small{width:auto;padding:9px 16px;font-size:14px}
+.btn.danger{background:transparent;color:var(--danger);border:1px solid var(--danger)}
+.btn:disabled{opacity:.45}
+
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.grid button{aspect-ratio:1;border:0;padding:0;border-radius:12px;overflow:hidden;background:var(--card);cursor:pointer;max-width:100%}
+.grid img{width:100%;height:100%;object-fit:cover;display:block}
+.day{font-family:var(--mono);font-size:13px;color:var(--muted);letter-spacing:.08em;margin-top:6px}
+
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;display:flex;justify-content:center;
+  padding:10px max(16px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));
+  background:linear-gradient(to top,var(--paper) 70%,transparent)}
+.tabs .inner{display:flex;gap:4px;background:var(--card);border-radius:999px;padding:5px;box-shadow:0 6px 22px rgba(0,0,0,.08);max-width:100%}
+.tab{border:0;background:transparent;border-radius:999px;padding:9px 30px;cursor:pointer;display:flex;flex-direction:column;align-items:center;line-height:1.15;min-width:0}
+.tab b{font-family:var(--mono);font-size:14px}
+.tab span{font-size:11px;color:var(--muted);letter-spacing:.2em}
+.tab[aria-selected="true"]{background:var(--accent)}
+.tab[aria-selected="true"] b,.tab[aria-selected="true"] span{color:var(--accent-ink)}
+
+.scrim{position:fixed;inset:0;background:var(--scrim);z-index:40;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--card);color:var(--ink);width:100%;max-width:560px;max-height:92%;overflow:auto;border-radius:34px 34px 0 0;
+  padding:26px max(20px,env(safe-area-inset-right,0px)) calc(22px + env(safe-area-inset-bottom,0px)) max(20px,env(safe-area-inset-left,0px));
+  display:flex;flex-direction:column;gap:16px;animation:up .28s ease-out}
+.sheet h3{margin:0;text-align:center;font-family:var(--mono);font-size:24px;letter-spacing:.03em}
+.sheet h3 small{display:block;font-family:var(--cjk);font-size:13px;font-weight:400;color:var(--muted);letter-spacing:.3em;margin-top:2px}
+@keyframes up{from{transform:translateY(40px);opacity:.4}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.sheet{animation:none}}
+
+.line{display:grid;grid-template-columns:minmax(0,1fr) 78px 70px 30px;gap:8px;align-items:center}
+.line .c{font-family:var(--mono);font-size:14px;text-align:right;font-variant-numeric:tabular-nums}
+.x{border:0;background:none;color:var(--muted);font-size:20px;cursor:pointer;padding:0}
+.lines-head{display:grid;grid-template-columns:minmax(0,1fr) 78px 70px 30px;gap:8px}
+.totals{display:flex;flex-direction:column;gap:6px;border-top:1px dashed var(--line);padding-top:14px}
+.totals div{display:flex;justify-content:space-between;font-variant-numeric:tabular-nums}
+.totals .grand{font-family:var(--mono);font-weight:700;font-size:24px}
+.photos{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}
+.photos img{width:84px;height:84px;object-fit:cover;border-radius:14px;flex:none}
+.addphoto{width:84px;height:84px;border-radius:14px;border:1px dashed var(--muted);display:grid;place-items:center;text-align:center;flex:none;cursor:pointer;font-size:12px;color:var(--muted);background:transparent;padding:4px}
+.actions{display:flex;gap:10px}
+.actions .btn{flex:1}
+.confirm{background:var(--paper);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:10px;text-align:center}
+.bigphoto{width:100%;border-radius:20px;max-height:58vh;object-fit:contain;background:var(--paper)}
+.note{color:var(--muted);font-size:13px;text-align:center}
+.banner{font-size:12px;color:var(--muted);text-align:center;margin-bottom:14px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(92px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--paper);padding:9px 18px;border-radius:99px;font-family:var(--mono);font-size:14px;z-index:60}
+.line-card{display:flex;flex-direction:column;gap:10px;padding:16px}
+.lc-top{display:flex;gap:8px;align-items:center}
+.lc-top input{font-weight:600}
+.lc-used{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:end;border-top:1px dashed var(--line);padding-top:10px}
+.lc-cost{text-align:right;display:flex;flex-direction:column;gap:2px;min-width:90px}
+.lc-cost b{font-family:var(--mono);font-size:20px;font-variant-numeric:tabular-nums}
+.dname{font-size:22px;font-weight:600;background:transparent;border:0;border-bottom:1px solid var(--line);border-radius:0;padding:6px 2px}
+.dname:focus{border-color:var(--accent)}
+.sum{position:sticky;bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:5;box-shadow:0 8px 26px rgba(0,0,0,.10)}
+.langbar{display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:46px;margin-bottom:14px}
+.iconbtn{width:42px;height:42px;border-radius:50%;border:0;background:transparent;display:grid;place-items:center;cursor:pointer;color:var(--ink);flex:none}
+.iconbtn svg{width:22px;height:22px}
+.iconbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.searchbar{flex:1;display:flex;align-items:center;gap:8px;min-width:0;border-bottom:1px solid var(--ink);padding:2px 2px 6px}
+.searchbar svg{width:16px;height:16px;flex:none;color:var(--muted)}
+.searchbar input{background:transparent;border:0;border-radius:0;padding:6px 0;font-size:17px;flex:1;min-width:0}
+.searchbar input::-webkit-search-cancel-button{display:none}
+.textbtn{background:none;border:0;font-family:var(--type);font-size:14px;color:var(--muted);cursor:pointer;padding:6px 2px;flex:none}
+.pager{display:flex;align-items:center;justify-content:center;gap:18px;margin-top:34px;font-family:var(--mono);font-size:14px;color:var(--muted);font-variant-numeric:tabular-nums}
+.pager button{background:none;border:0;width:40px;height:40px;border-radius:50%;cursor:pointer;color:var(--ink);font-size:20px;font-family:var(--mono)}
+.pager button:disabled{opacity:.2;cursor:default}
+.dots{display:flex;gap:7px}
+.dots i{width:6px;height:6px;border-radius:50%;background:var(--line)}
+.dots i.on{background:var(--accent)}
+.langbtn{width:auto;padding:0 14px;height:38px;border-radius:99px;font-family:var(--mono);font-size:14px;letter-spacing:.06em;gap:6px;display:flex;align-items:center}
+.langbtn .on{color:var(--ink)} .langbtn .off{color:var(--muted);font-weight:400}
+html.en .zh, html.en .tab span, html.en #heroCn{display:none}
+.tab{padding-block:12px}
+.stamp{display:flex;flex-direction:column;align-items:center;gap:14px;padding:6px 0 4px}
+.art{position:relative;width:min(260px,74%);aspect-ratio:1;max-width:100%}
+.art img{width:100%;height:100%;object-fit:cover;display:block;border-radius:50%;box-shadow:0 10px 24px rgba(40,25,15,.22),0 2px 4px rgba(40,25,15,.15)}
+.art .grain{display:none}
+.art .grain{position:absolute;inset:0;pointer-events:none;opacity:.55;mix-blend-mode:multiply;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .2 0 0 0 0 .15 0 0 0 0 .1 0 0 0 .45 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  -webkit-mask-image:var(--m);mask-image:var(--m);-webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center}
+.art.blank{border:1.5px dashed var(--line);border-radius:28px;display:grid;place-items:center;color:var(--muted);text-align:center;font-size:13px;padding:18px}
+.stamp-name{font-family:var(--mono);font-weight:700;font-size:22px;letter-spacing:.04em;text-align:center;text-wrap:balance}
+.ai-status{font-size:13px;color:var(--muted);text-align:center;min-height:1.2em}
+.ai-status.busy::after{content:"";display:inline-block;width:1.2em;text-align:left;animation:dots 1.2s steps(4) infinite}
+@keyframes dots{0%{content:""}25%{content:"."}50%{content:".."}75%{content:"..."}}
+.art.busy img{opacity:.35}
+.stamp .actions{width:100%}
+.thumb.artthumb{background:var(--paper)}
+.thumb.artthumb img{object-fit:cover;border-radius:50%;padding:0}
+.seg{display:flex;gap:4px;background:var(--paper);border-radius:99px;padding:4px}
+.seg button{border:0;background:transparent;border-radius:99px;padding:6px 14px;font-family:var(--mono);font-size:13px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--card);box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.stamp .actions{flex-wrap:wrap}
+.stamp .actions .btn{flex:1 1 140px}
+.dgrid{display:grid;grid-template-columns:1fr 1fr;gap:34px 22px;padding:8px 6px 0}
+.stk{background:none;border:0;padding:0;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0;text-align:center;-webkit-tap-highlight-color:transparent}
+.stk:nth-child(even){margin-top:42px}
+.stk .pic{width:100%;aspect-ratio:1;display:grid;place-items:center;transition:transform .25s ease}
+.stk .pic img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 6px 10px rgba(60,40,25,.08))}
+.stk .pic svg{width:92%;height:92%;filter:drop-shadow(0 6px 10px rgba(60,40,25,.06))}
+.stk:nth-child(3n+1) .pic{transform:rotate(-3deg)} .stk:nth-child(3n+2) .pic{transform:rotate(2deg)} .stk:nth-child(3n) .pic{transform:rotate(-1deg)}
+.stk.add .pic{transform:none}
+.stk:active .pic{transform:scale(.96)}
+.stk:focus-visible{outline:none} .stk:focus-visible .pic{outline:1.5px solid var(--accent);outline-offset:4px;border-radius:50%}
+.stk .oname{font-size:14px;font-weight:600;letter-spacing:.04em;margin-top:6px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.stk .oname.muted{color:var(--muted);font-weight:400}
+.stk .ocost{font-family:var(--mono);font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums;letter-spacing:.04em}
+.back{align-self:flex-start;margin-bottom:6px}
+html.scene-on body{background:#EAE3D5;color:#2E2520}
+html.scene-on .hero .sub,html.scene-on .banner{color:#8A7E72}
+html.scene-on .iconbtn,html.scene-on .langbtn{color:#2E2520}
+html.scene-on .hero h1{color:#5B4433}
+html.scene-on .langbtn .on{color:#2E2520} html.scene-on .langbtn .off{color:#9A8E82}
+html.scene-on .searchbar{border-color:#2E2520} html.scene-on .searchbar input{color:#2E2520} html.scene-on .searchbar svg,html.scene-on .textbtn{color:#8A7E72}
+html.scene-on nav.tabs{background:none}
+.scene-wrap{container-type:inline-size;position:relative;width:min(80vw,480px);margin-left:auto;margin-right:auto;margin-top:4px;margin-bottom:calc(-110px - env(safe-area-inset-bottom,0px))}
+.scene{position:relative;height:calc(140cqw + 150px)}
+.scene-bg{position:absolute;top:0;left:-12.5%;width:125%;height:100%;display:block;max-width:none}
+.plate{position:absolute;left:calc(var(--x) * 100cqw);top:calc(var(--y) * 100cqw);width:29cqw;aspect-ratio:1;transform:translate(-50%,-50%) rotate(var(--r));background:none;border:0;padding:0;cursor:pointer;transition:transform .2s ease;-webkit-tap-highlight-color:transparent}
+.plate img{width:100%;height:100%;display:block;object-fit:cover;border-radius:50%;filter:drop-shadow(0 3px 3px rgba(90,25,10,.28))}
+.plate:active{transform:translate(-50%,-50%) rotate(var(--r)) scale(.95)}
+.plate:focus-visible{outline:2px solid #2F4A6D;outline-offset:2px;border-radius:50%}
+.plate .card{position:absolute;left:50%;bottom:-6%;transform:translateX(-50%) rotate(calc(var(--r) * -1));background:#F7F2E8;color:#2E2520;padding:3px 10px 4px;border-radius:1px;box-shadow:0 1px 2px rgba(30,20,10,.35);white-space:nowrap;max-width:118%;overflow:hidden;text-overflow:ellipsis;font-size:11.5px;line-height:1.25;text-align:center}
+.plate .card b{display:block;font-weight:600;overflow:hidden;text-overflow:ellipsis}
+.plate .card i{display:block;font-style:normal;font-family:var(--mono);font-size:10px;color:#8A7E72;font-variant-numeric:tabular-nums}
+.scene .pager{position:absolute;left:0;right:0;top:calc(137cqw);margin:0;color:#6B5A4A}
+.scene .pager button{color:#2E2520}
+.scene .dots i{background:rgba(46,37,32,.18)} .scene .dots i.on{background:#2E2520}
+.seedlink{width:auto!important;height:auto!important;border-radius:99px!important;padding:8px 16px;background:rgba(255,255,255,.35)!important;color:#2E2520!important;font-family:var(--type)!important;font-size:13px!important}
+.suggest{display:flex;flex-direction:column;background:var(--paper);border-radius:12px;overflow:hidden;margin-top:-2px;box-shadow:0 4px 14px rgba(0,0,0,.08)}
+.suggest .sg-head{font-size:11px;letter-spacing:.12em;color:var(--muted);padding:8px 12px 4px;font-family:var(--mono)}
+.suggest button{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:11px 12px;border:0;border-top:1px solid var(--line);background:none;text-align:left;font:inherit;color:var(--ink);cursor:pointer;min-width:0}
+.suggest button:first-of-type{border-top:0}
+.suggest button:hover,.suggest button:focus-visible,.suggest button.on{background:var(--accent-soft);outline:none}
+.suggest b{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.suggest b mark{background:none;color:var(--accent);font-weight:700}
+.suggest i{font-style:normal;font-family:var(--mono);font-size:12px;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+.dish-title{font-family:"Noto Serif SC","Songti SC","SimSun",serif;font-weight:700;font-size:clamp(28px,8.5vw,38px);letter-spacing:.14em;text-indent:.14em;line-height:1.2;color:var(--title);filter:url(#copy);text-align:center;text-wrap:balance;overflow-wrap:anywhere;
+  outline:none;cursor:text;min-width:4em;max-width:100%;border-bottom:1.5px dashed transparent;padding:2px .2em;transition:border-color .2s;margin-top:-4px}
+html.en .dish-title{font-family:"IM Fell English","Noto Serif SC",Georgia,serif;font-weight:400;font-size:clamp(32px,9.5vw,42px);letter-spacing:.03em;text-indent:.03em;filter:url(#press)}
+.dish-title:empty::before{content:attr(data-ph);color:var(--muted);opacity:.7;font-size:.6em;letter-spacing:.08em}
+.dish-title:focus{border-bottom-color:var(--accent)}
+.art-btn{background:none;border:0;padding:0;cursor:pointer;display:grid;place-items:center;width:100%;-webkit-tap-highlight-color:transparent}
+.art-btn:focus-visible .art{outline:2px solid var(--accent);outline-offset:6px;border-radius:50%}
+.art-btn .art.blank{gap:8px}
+.art-btn .plus{font-family:var(--mono);font-size:34px;color:var(--accent);line-height:1}
+.picmenu{display:flex;flex-direction:column;width:100%;background:var(--card);box-shadow:0 4px 16px rgba(0,0,0,.06);border-radius:16px;overflow:hidden}
+.picmenu button{border:0;border-top:1px solid var(--line);background:none;padding:14px;font:inherit;font-family:var(--mono);font-size:15px;color:var(--ink);cursor:pointer}
+.picmenu button:first-child{border-top:0}
+.picmenu button.cancel{color:var(--muted)}
+.plusbtn{width:42px;height:42px;border:0;background:none;color:var(--accent);display:grid;place-items:center;cursor:pointer;border-radius:50%;margin:-6px -8px -6px 0}
+.plusbtn svg{width:26px;height:26px}
+.plusbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.rc-wait{display:flex;flex-direction:column;align-items:center;gap:6px;padding:26px 0}
+.rc-list{display:flex;flex-direction:column;gap:10px}
+.rc-row{background:var(--paper);border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:10px}
+.rc-row.off{opacity:.45}
+.rc-top{display:flex;gap:10px;align-items:center}
+.rc-top input[type=checkbox]{width:22px;height:22px;flex:none;accent-color:var(--accent);padding:0}
+.rc-top input:not([type]){background:var(--card);font-weight:600}
+.rc-mid{display:grid;grid-template-columns:1fr 1.3fr;gap:10px}
+.rc-mid input,.rc-mid select{background:var(--card)}
+.rc-meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12px;color:var(--muted)}
+.rc-meta .pill{margin:0}
+.rc-old{font-family:var(--mono);font-size:11px}
+.crop-stage{position:relative;width:100%;max-width:340px;aspect-ratio:1;margin:0 auto;overflow:hidden;border-radius:18px;background:#1f1b18;touch-action:none;cursor:grab;user-select:none}
+.crop-stage img{position:absolute;max-width:none;pointer-events:none;user-select:none}
+.crop-ring{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+#crop-zoom{padding:0;background:none;accent-color:var(--accent)}
+.dish-plate{position:relative;display:block;width:100%;height:100%}
+.dish-plate .dp-plate{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;border-radius:0;box-shadow:none;filter:none;display:block}
+.dish-plate .dp-photo{position:absolute;left:50%;top:50%;width:62%;height:62%;transform:translate(-50%,-50%);border-radius:50%;object-fit:cover;box-shadow:0 2px 6px rgba(40,25,15,.28),0 0 0 1.5px rgba(255,255,255,.55);filter:none;display:block}
+.dish-plate .dp-mark{position:absolute;inset:0;display:grid;place-items:center;font-family:"Noto Serif SC",serif;color:rgba(46,37,32,.45);line-height:1}
+.plate .dp-mark{font-size:8cqw}
+.art .dp-mark{font-size:64px;color:var(--accent)}
+.art{width:min(300px,84%)}
+.plate-pick{display:flex;gap:8px;overflow-x:auto;max-width:100%;padding:4px 2px 6px;scrollbar-width:none}
+.plate-pick::-webkit-scrollbar{display:none}
+.plate-pick button{flex:none;width:46px;height:46px;border:0;padding:2px;border-radius:50%;background:none;cursor:pointer;opacity:.75}
+.plate-pick button img{width:100%;height:100%;display:block}
+.plate-pick button[aria-checked="true"]{opacity:1;box-shadow:0 0 0 2px var(--accent)}
+.icon-actions{display:flex;justify-content:center;gap:44px;margin-top:18px}
+.icon-act{display:flex;flex-direction:column;align-items:center;gap:4px;background:none;border:0;padding:6px 10px;cursor:pointer;color:var(--muted);font-family:var(--mono);font-size:11px;letter-spacing:.08em}
+.icon-act svg{width:24px;height:24px;color:var(--ink)}
+.icon-act.del svg{color:var(--danger)}
+.icon-act:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:10px}
+.set-list{display:flex;flex-direction:column;border-top:1px solid var(--line);margin-top:4px}
+.set-row{display:flex;align-items:center;gap:10px;background:none;border:0;border-bottom:1px solid var(--line);padding:15px 2px;cursor:pointer;color:var(--ink);font:inherit;text-align:left}
+.set-row span{flex:1;font-family:var(--mono);font-size:15px}
+.set-row i{font-style:normal;font-size:12px;color:var(--muted)}
+.set-row b{color:var(--muted);font-weight:400;font-size:18px}
+.set-row:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+#login{position:fixed;inset:0;z-index:80;background:var(--paper);display:flex;align-items:center;justify-content:center;padding:24px max(24px,env(safe-area-inset-right,0px)) 24px max(24px,env(safe-area-inset-left,0px))}
+.login-in{width:100%;max-width:360px;display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center}
+.login-icon{width:112px;height:112px;border-radius:26px;box-shadow:0 8px 24px rgba(40,25,15,.18)}
+.login-in h2{margin:6px 0 0;font-family:"IM Fell English","Noto Serif SC",Georgia,serif;font-weight:400;font-size:40px;color:var(--title);letter-spacing:.03em}
+.login-in p{margin:0 0 8px;color:var(--muted);font-size:14px;max-width:30ch}
+.login-in .btn{display:flex;align-items:center;justify-content:center;gap:10px}
+.g-mark{width:22px;height:22px;border-radius:50%;background:#fff;color:#4285F4;display:grid;place-items:center;font-family:Arial,sans-serif;font-weight:700;font-size:14px}
+.set-acct{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 2px;border-bottom:1px solid var(--line);font-size:14px}
+.set-acct span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+@media (max-width:400px){.tab{padding:8px 11px}}
+@media (max-width:380px){.hero h1{font-size:38px}.line,.lines-head{grid-template-columns:minmax(0,1fr) 66px 62px 24px}.tab{padding:9px 12px}}
+</style>
+
+<div class="wrap">
+  <div class="langbar"><div id="searchSlot" style="display:flex;flex:1;min-width:0"></div><button class="iconbtn" id="menuBtn" data-act="menu" aria-label="设置 / Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M5 7.5h14M5 12h14M5 16.5h14"/></svg></button></div>
+  <div class="hero" style="padding-top:2px">
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="press" x="-5%" y="-10%" width="110%" height="120%"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="3" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="1.1" xChannelSelector="R" yChannelSelector="G" result="d"/><feTurbulence type="fractalNoise" baseFrequency="0.08" numOctaves="2" seed="5" result="s"/><feColorMatrix in="s" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -1.4 1.6" result="m"/><feComposite in="d" in2="m" operator="in"/></filter><filter id="copy" x="-5%" y="-15%" width="110%" height="130%" color-interpolation-filters="sRGB"><feGaussianBlur in="SourceAlpha" stdDeviation="0.75" result="b"/><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="4" result="n"/><feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0" result="na"/><feComposite in="b" in2="na" operator="arithmetic" k1="0" k2="1" k3="0.6" k4="-0.32" result="c"/><feComponentTransfer in="c" result="t"><feFuncA type="linear" slope="9" intercept="-3.4"/></feComponentTransfer><feFlood class="ink" result="f"/><feComposite in="f" in2="t" operator="in"/></filter></svg>
+    <h1 id="heroTitle">Dishes</h1>
+    
+  </div>
+  <div class="banner" id="banner" hidden></div>
+
+  <main id="view"></main>
+</div>
+
+<nav class="tabs" aria-label="主菜单">
+  <div class="inner" role="tablist">
+    <button class="tab" role="tab" data-tab="cost" aria-selected="true"><b>Dishes</b></button>
+    <button class="tab" role="tab" data-tab="pantry" aria-selected="false"><b>Ingredients</b></button>
+  </div>
+</nav>
+
+<input type="file" id="stInput" accept="image/*" capture="environment" class="sr" aria-label="Sticker">
+<input type="file" id="restoreInput" accept=".json,application/json" class="sr" aria-label="Backup file">
+<input type="file" id="rcCam" accept="image/*" capture="environment" class="sr" aria-label="Receipt photo">
+<input type="file" id="rcPick" accept="image/*" class="sr" aria-label="Receipt from album">
+<input type="file" id="stPick" accept="image/*" class="sr" aria-label="Sticker from album">
+<input type="file" id="aiInput" accept="image/*" capture="environment" class="sr" aria-label="AI">
+<input type="file" id="photoInput" accept="image/*" capture="environment" class="sr" aria-label="拍照">
+<div id="layer"></div>
+
+<script>
+(function(){
+"use strict";
+const CUR = "RM";
+const UNITS = {
+  g:{fam:"mass",f:1,label:"g"}, kg:{fam:"mass",f:1000,label:"kg"},
+  ml:{fam:"vol",f:1,label:"ml"}, L:{fam:"vol",f:1000,label:"L"},
+  pcs:{fam:"count",f:1,label:"个"}
+};
+const FAM_UNITS = {mass:["g","kg"],vol:["ml","L"],count:["pcs"]};
+const $ = s => document.querySelector(s);
+const ING_DICT = "鸡蛋|egg|eggs;蛋黄|egg yolk|yolk;蛋白|egg white;牛奶|milk;鲜奶油|cream|heavy cream|whipping cream;淡奶油|whipping cream;酸奶|yogurt|yoghurt;黄油|butter;芝士|cheese;奶酪|cheese;奶油奶酪|cream cheese;马斯卡彭|mascarpone;炼乳|condensed milk;淡奶|evaporated milk;椰浆|coconut milk;椰奶|coconut milk;面粉|flour;低筋面粉|cake flour;高筋面粉|bread flour;中筋面粉|all-purpose flour|plain flour;玉米淀粉|cornstarch|corn starch;淀粉|starch;泡打粉|baking powder;小苏打|baking soda;酵母|yeast;糖|sugar;白糖|white sugar|granulated sugar;细砂糖|caster sugar;糖粉|icing sugar|powdered sugar;红糖|brown sugar;黑糖|brown sugar;冰糖|rock sugar;蜂蜜|honey;枫糖浆|maple syrup;糖浆|syrup;盐|salt;海盐|sea salt;胡椒|pepper;黑胡椒|black pepper;白胡椒|white pepper;香草荚|vanilla bean;香草精|vanilla extract;可可粉|cocoa powder;巧克力|chocolate;黑巧克力|dark chocolate;白巧克力|white chocolate;抹茶粉|matcha powder|matcha;咖啡|coffee;咖啡豆|coffee beans;红茶|black tea;绿茶|green tea;茶叶|tea leaves;吉利丁|gelatin|gelatine;吉利丁片|gelatin sheet|gelatin sheets;琼脂|agar;水|water;冰块|ice;油|oil;食用油|cooking oil;植物油|vegetable oil;橄榄油|olive oil;花生油|peanut oil;麻油|sesame oil;香油|sesame oil;酱油|soy sauce;生抽|light soy sauce;老抽|dark soy sauce;蚝油|oyster sauce;醋|vinegar;米醋|rice vinegar;料酒|cooking wine;味醂|mirin;清酒|sake;味噌|miso;鱼露|fish sauce;番茄酱|ketchup|tomato sauce;辣椒酱|chili sauce|chilli sauce;豆瓣酱|doubanjiang|bean paste;芝麻酱|sesame paste;花生酱|peanut butter;蛋黄酱|mayonnaise|mayo;芥末|mustard;山葵|wasabi;咖喱|curry;咖喱粉|curry powder;姜|ginger;蒜|garlic;大蒜|garlic;葱|spring onion|scallion|green onion;洋葱|onion;红葱头|shallot;辣椒|chili|chilli;干辣椒|dried chili;香菜|coriander|cilantro;罗勒|basil;迷迭香|rosemary;百里香|thyme;薄荷|mint;月桂叶|bay leaf;八角|star anise;肉桂|cinnamon;桂皮|cinnamon;丁香|clove|cloves;花椒|sichuan pepper;孜然|cumin;姜黄|turmeric;芝麻|sesame|sesame seeds;香茅|lemongrass;班兰叶|pandan|pandan leaf;米|rice;白米|white rice;糯米|glutinous rice|sticky rice;面条|noodles;拉面|ramen;乌冬|udon;意大利面|pasta|spaghetti;米粉|rice noodles;面包|bread;吐司|toast;面包糠|breadcrumbs|panko;豆腐|tofu;鸡肉|chicken;鸡胸肉|chicken breast;鸡腿|chicken thigh|chicken leg;鸡翅|chicken wings;猪肉|pork;五花肉|pork belly;猪排|pork chop;培根|bacon;火腿|ham;香肠|sausage;牛肉|beef;牛排|steak;羊肉|lamb|mutton;鸭肉|duck;鱼|fish;三文鱼|salmon;金枪鱼|tuna;鳕鱼|cod;虾|shrimp|prawn|prawns;蟹|crab;鱿鱼|squid;蛤蜊|clam|clams;青口|mussel|mussels;扇贝|scallop|scallops;番茄|tomato|tomatoes;西红柿|tomato;土豆|potato|potatoes;马铃薯|potato;红薯|sweet potato;胡萝卜|carrot|carrots;黄瓜|cucumber;茄子|eggplant|aubergine;青椒|green pepper|bell pepper;甜椒|bell pepper|capsicum;西兰花|broccoli;花椰菜|cauliflower;菠菜|spinach;生菜|lettuce;卷心菜|cabbage;白菜|napa cabbage|chinese cabbage;芹菜|celery;玉米|corn;豌豆|peas;青豆|green peas;四季豆|green beans;豆芽|bean sprouts;蘑菇|mushroom|mushrooms;香菇|shiitake;金针菇|enoki;南瓜|pumpkin;冬瓜|winter melon;山药|yam;莲藕|lotus root;牛油果|avocado;柠檬|lemon;青柠|lime;橙子|orange;橙|orange;苹果|apple;香蕉|banana;草莓|strawberry|strawberries;蓝莓|blueberry|blueberries;芒果|mango;菠萝|pineapple;西瓜|watermelon;葡萄|grape|grapes;桃子|peach;梨|pear;樱桃|cherry|cherries;椰子|coconut;椰丝|desiccated coconut;红豆|red bean|red beans|azuki;绿豆|mung bean|mung beans;黄豆|soybean|soybeans;花生|peanut|peanuts;杏仁|almond|almonds;核桃|walnut|walnuts;腰果|cashew|cashews;开心果|pistachio|pistachios;葡萄干|raisin|raisins;燕麦|oats;奶茶粉|milk tea powder;炼奶|condensed milk;焦糖|caramel;果酱|jam;朗姆酒|rum;白葡萄酒|white wine;红葡萄酒|red wine;啤酒|beer";
+const ZH2EN = {}, EN2ZH = {};
+ING_DICT.split(";").forEach(it=>{ const [zh, ...ens] = it.split("|"); if(!ZH2EN[zh]) ZH2EN[zh]=ens[0]; ens.forEach(e=>{ if(!EN2ZH[e]) EN2ZH[e]=zh; }); });
+const hasCJK = s => /[\u3400-\u9fff]/.test(s||"");
+const cap = s => s ? s.charAt(0).toUpperCase()+s.slice(1) : s;
+function autoNames(n){
+  n = String(n||"").trim();
+  if(hasCJK(n)) return {nameZh:n, nameEn: ZH2EN[n] ? cap(ZH2EN[n]) : ""};
+  const k = n.toLowerCase(); const zh = EN2ZH[k] || EN2ZH[k.replace(/(es|s)$/,"")] || "";
+  return {nameEn:n, nameZh:zh};
+}
+const ingName = i => { if(!i) return ""; const a = (i.nameEn && i.nameZh) ? {} : autoNames(i.name);
+  return LANG==="en" ? (i.nameEn || a.nameEn || i.name) : (i.nameZh || a.nameZh || i.name); };
+function matchIng(n){ n=String(n||"").trim().toLowerCase(); if(!n) return null;
+  return ings().find(i=>[i.name,i.nameZh,i.nameEn].some(v=>v && v.toLowerCase()===n)) || null; }
+let LANG = "zh";
+try{ const v = localStorage.getItem("kitchen-cost-lang"); if(v==="en"||v==="zh") LANG=v; }catch(e){}
+const L = (zh, en) => LANG==="en" ? en : zh;
+const uLabel = k => k==="pcs" ? L("个","pc") : UNITS[k].label;
+const lab = (en, zh, enOnly) => `<span class="label">${LANG==="en" ? (enOnly||en) : zh}</span>`;
+function applyLang(){
+  document.documentElement.classList.toggle("en", LANG==="en");
+  document.documentElement.lang = LANG==="en" ? "en" : "zh-CN";
+  const b=$("#banner"); if(!b.hidden) b.textContent = L("未登录：资料只存在这台设备的浏览器里","Not signed in: data stays in this browser only");
+}
+const esc = s => String(s ?? "").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const money = n => !isFinite(n) ? "—" : CUR + " " + (Math.abs(n) < 0.1 && n !== 0 ? n.toFixed(3) : n.toFixed(2));
+const uid = p => p + "_" + Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+const num = v => { const n = parseFloat(String(v).replace(",", ".")); return isFinite(n) ? n : NaN; };
+
+
+/* ---------- unit maths ---------- */
+function unitCost(ing){ // cost per base unit (g / ml / pc)
+  const base = num(ing.qty) * (UNITS[ing.unit]?.f || 1);
+  return base > 0 ? num(ing.price) / base : NaN;
+}
+function lineCost(line){
+  const ing = state.items.find(i=>i.id===line.ingId);
+  if(!ing) return NaN;
+  const u = UNITS[line.unit] || UNITS[ing.unit];
+  if(u.fam !== UNITS[ing.unit].fam) return NaN;
+  return unitCost(ing) * num(line.amount) * u.f;
+}
+function dishTotals(d){
+  const lines = d.lines || [];
+  const total = lines.reduce((s,l)=>{ const c = lineCost(l); return s + (isFinite(c)?c:0); },0);
+  const portions = 1;
+  const per = total / portions;
+  const sell = num(d.sell);
+  const pct = sell > 0 ? per / sell * 100 : NaN;
+  return {total, per, portions, sell, pct, missing: lines.some(l=>!isFinite(lineCost(l)))};
+}
+function unitPriceText(ing){
+  const c = unitCost(ing); if(!isFinite(c)) return "";
+  const fam = UNITS[ing.unit].fam;
+  if(fam==="count") return money(c) + " / " + uLabel("pcs");
+  return money(c*100) + " / 100" + (fam==="mass"?"g":"ml");
+}
+
+/* ---------- storage (private db, local fallback) ---------- */
+const state = { items:[], ready:false, mode:"loading", tab:"cost", page:0, q:"", searching:false };
+const SEARCH_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 20 20"/></svg>';
+const PER_PAGE = 8;
+const LS = "kitchen-cost-v1";
+const STANDALONE = true;
+const idb = {
+  db:null,
+  open(){ return this.db || (this.db = new Promise((res,rej)=>{ const q=indexedDB.open("kitchen-cost",1); q.onupgradeneeded=()=>q.result.createObjectStore("kv"); q.onsuccess=()=>res(q.result); q.onerror=()=>rej(q.error); })); },
+  async get(k){ const db=await this.open(); return new Promise((res,rej)=>{ const q=db.transaction("kv").objectStore("kv").get(k); q.onsuccess=()=>res(q.result); q.onerror=()=>rej(q.error); }); },
+  async set(k,v){ const db=await this.open(); return new Promise((res,rej)=>{ const t=db.transaction("kv","readwrite"); t.objectStore("kv").put(v,k); t.oncomplete=()=>res(true); t.onerror=()=>rej(t.error); t.onabort=()=>rej(t.error); }); }
+};
+const local = {
+  async load(){
+    try{ const v = await idb.get("items"); if(Array.isArray(v)) return v; }catch(e){}
+    try{ const old = JSON.parse(localStorage.getItem(LS)||"[]"); if(old.length){ try{ await idb.set("items", old); }catch(e){} } return old; }catch(e){ return []; }
+  },
+  async save(){
+    try{ await idb.set("items", state.items.map(o=>Object.assign({}, o))); return true; }
+    catch(e){ try{ localStorage.setItem(LS, JSON.stringify(state.items)); return true; }catch(e2){ return false; } }
+  }
+};
+async function saveFile(name, blob){
+  let dl = null; try{ dl = window.claude && claude.use ? await claude.use("downloads") : null; }catch(e){}
+  if(dl){ return dl.save({filename:name, data:blob}); }
+  const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = name;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url), 4000);
+  return {status:"saved"};
+}
+let col = null;
+async function put(obj){
+  const i = state.items.findIndex(x=>x.id===obj.id);
+  if(i>=0) state.items[i]=obj; else state.items.push(obj);
+  render();
+  const {id, ...body} = obj;
+  if(col){ try{ await col.doc(id).set(body); }catch(e){ toast(L("保存失败，请再试一次","Couldn’t save. Try again.")); } }
+  else if(!(await local.save())) toast(L("这台设备无法保存","This device can’t save data"));
+}
+async function del(id){
+  state.items = state.items.filter(x=>x.id!==id); render();
+  if(col){ try{ await col.doc(id).delete(); }catch(e){ toast(L("删除失败","Couldn’t delete")); } } else local.save();
+}
+let sampleFn = null, aiImages = false, aiCtl = null, aiMsg = "", aiBlob = null;
+async function initAI(){
+  try{
+    if(!(window.claude && claude.use)) return;
+    sampleFn = STANDALONE ? null : await claude.use("sample");
+    if(sampleFn){ const lim = await sampleFn.limits().catch(()=>null); aiImages = !!(lim && lim.images); }
+  }catch(e){ sampleFn = null; }
+  render();
+}
+/* ---------- GitHub version: Google sign-in + Firestore cloud sync ---------- */
+const FB_CONFIG = {"apiKey": "AIzaSyBd5sEKfs6Paj0tw6i0VJp4JVXVeAVIUoI", "authDomain": "costie-861e2.firebaseapp.com", "projectId": "costie-861e2", "storageBucket": "costie-861e2.firebasestorage.app", "messagingSenderId": "441169145071", "appId": "1:441169145071:web:76169d8a492cbb504e3f1a"};
+const FB_V = "10.14.1";
+let fb = null, fbUnsub = null;
+async function loadFirebase(){
+  const base = `https://www.gstatic.com/firebasejs/${FB_V}/`;
+  const [appM, authM, fsM] = await Promise.all([import(base+"firebase-app.js"), import(base+"firebase-auth.js"), import(base+"firebase-firestore.js")]);
+  const app = appM.initializeApp(FB_CONFIG);
+  const auth = authM.getAuth(app);
+  let db;
+  try{ db = fsM.initializeFirestore(app, {ignoreUndefinedProperties:true, localCache: fsM.persistentLocalCache({tabManager: fsM.persistentMultipleTabManager()})}); }
+  catch(e){ db = fsM.getFirestore(app); }
+  fb = {app, auth, db, authM, fsM, user:null};
+  return fb;
+}
+function fbCollection(uid){
+  const {fsM, db} = fb; const c = fsM.collection(db, "users", uid, "items");
+  return {
+    doc: id => ({ set: body => fsM.setDoc(fsM.doc(c, id), body), delete: () => fsM.deleteDoc(fsM.doc(c, id)) }),
+    onSnapshot: (cb, err) => fsM.onSnapshot(c, cb, err),
+    ref: c
+  };
+}
+const LOCAL_ONLY_KEY = "kitchen-cost-local-only";
+async function bootFirebase(){
+  try{ await loadFirebase(); }
+  catch(e){ toast(L("连不上云端，先用这台手机的资料","Can’t reach the cloud. Using this phone for now.")); return fallback(); }
+  const {authM, auth} = fb;
+  try{ await authM.getRedirectResult(auth); }catch(e){ if(e && e.code) toast(L("登录没有成功，再试一次","Sign-in didn’t finish. Try again.")); }
+  authM.onAuthStateChanged(auth, user=>{
+    fb.user = user;
+    if(user){ try{ localStorage.removeItem(LOCAL_ONLY_KEY); }catch(e){} hideLogin(); startCloud(user); }
+    else {
+      if(fbUnsub){ fbUnsub(); fbUnsub = null; }
+      let localOnly = false; try{ localOnly = localStorage.getItem(LOCAL_ONLY_KEY)==="1"; }catch(e){}
+      if(localOnly){ hideLogin(); fallback(); } else showLogin();
+    }
+  });
+}
+async function startCloud(user){
+  if(fbUnsub){ fbUnsub(); fbUnsub = null; }
+  col = fbCollection(user.uid); state.mode = "cloud";
+  const banner = $("#banner"); if(banner) banner.hidden = true;
+  // first sign-in on this phone: move what was saved locally up to the cloud
+  const flag = "kitchen-cost-migrated-" + user.uid;
+  let migrated = false; try{ migrated = localStorage.getItem(flag)==="1"; }catch(e){}
+  if(!migrated){
+    try{
+      const localItems = await local.load();
+      if(localItems.length){
+        const snap = await fb.fsM.getDocs(col.ref);
+        const have = new Set(snap.docs.map(d=>d.id));
+        for(const o of localItems){ if(!o || !o.id || have.has(o.id)) continue; const {id, ...body} = o; await col.doc(id).set(body); }
+        toast(L("已把这台手机的资料搬上云端","Moved this phone’s data to the cloud"));
+      }
+      try{ localStorage.setItem(flag, "1"); }catch(e){}
+    }catch(e){ /* try again next time */ }
+  }
+  fbUnsub = col.onSnapshot(snap=>{
+    state.items = snap.docs.map(d=>Object.assign({id:d.id}, d.data()));
+    state.ready = true; render();
+  }, err=>{ toast(L("同步出错，暂时用本机数据","Sync failed, using this device for now")); fallback(); });
+}
+async function googleSignIn(){
+  if(!fb){ toast(L("连不上云端，请检查网络","Can’t reach the cloud. Check your connection.")); return; }
+  const {authM, auth} = fb; const provider = new authM.GoogleAuthProvider();
+  provider.setCustomParameters({prompt:"select_account"});
+  try{ await authM.signInWithPopup(auth, provider); }
+  catch(e){
+    const c = e && e.code;
+    if(c==="auth/popup-closed-by-user" || c==="auth/cancelled-popup-request") return;
+    if(c==="auth/popup-blocked" || c==="auth/operation-not-supported-in-this-environment" || c==="auth/web-storage-unsupported"){
+      try{ await authM.signInWithRedirect(auth, provider); return; }catch(e2){}
+    }
+    if(c==="auth/unauthorized-domain") toast(L("这个网址还没加进 Firebase 的允许名单","This address isn’t on the Firebase allowed list yet"));
+    else toast(L("登录没有成功，再试一次","Sign-in didn’t finish. Try again."));
+  }
+}
+async function googleSignOut(){
+  if(!fb) return;
+  try{ await fb.authM.signOut(fb.auth); }catch(e){}
+  if(fbUnsub){ fbUnsub(); fbUnsub = null; }
+  col = null; state.items = []; state.ready = false; closeSheet(); render();
+}
+function showLogin(){
+  let el = $("#login"); if(!el){ el = document.createElement("div"); el.id = "login"; document.body.appendChild(el); }
+  el.innerHTML = `<div class="login-in">
+    <img src="icons/icon-192.png" alt="" class="login-icon">
+    <h2>Costie</h2>
+    <p>${L("用 Google 登录，菜品和食材会存在云端，换手机也不会不见。","Sign in with Google to keep your dishes and ingredients in the cloud, on every phone.")}</p>
+    <button class="btn" data-act="gSignIn"><span class="g-mark">G</span>${L("用 Google 登录","Sign in with Google")}</button>
+    <button class="link" data-act="localOnly">${L("先不登录，只存在这台手机","Not now — keep it on this phone")}</button>
+  </div>`;
+  el.hidden = false;
+}
+function hideLogin(){ const el = $("#login"); if(el) el.hidden = true; }
+
+async function boot(){
+  initAI();
+  if(STANDALONE && FB_CONFIG) return bootFirebase();
+  let db=null, user=null, me=null;
+  try{ if(window.claude && claude.use){ [db,user] = await Promise.all([claude.use("db"), claude.use("user")]); } }catch(e){}
+  try{ me = user ? await user.id() : null; }catch(e){}
+  if(db && me){
+    col = db.collection("data/users/" + me);
+    state.mode = "cloud";
+    col.onSnapshot(snap=>{
+      state.items = snap.docs.map(d=>Object.assign({id:d.id}, d.data()));
+      state.ready = true; render();
+    }, err=>{ toast(L("同步出错，暂时用本机数据","Sync failed, using this device for now")); fallback(); });
+  } else fallback();
+}
+async function fallback(){
+  col=null; state.mode="local"; state.items=await local.load(); state.ready=true;
+  if(STANDALONE){ try{ navigator.storage && navigator.storage.persist && navigator.storage.persist(); }catch(e){} }
+  else { const b=$("#banner"); b.hidden=false; b.textContent=L("未登录：资料只存在这台设备的浏览器里","Not signed in: data stays in this browser only"); }
+  render();
+}
+
+const ings = () => state.items.filter(x=>x.kind==="ing").sort((a,b)=>ingName(a).localeCompare(ingName(b),"zh"));
+const dishes = () => state.items.filter(x=>x.kind==="dish").sort((a,b)=>(b.updated||0)-(a.updated||0));
+const photos = () => state.items.filter(x=>x.kind==="photo").sort((a,b)=>(b.at||0)-(a.at||0));
+const dishPhotos = id => photos().filter(p=>p.dishId===id);
+
+/* ---------- settings ---------- */
+const settings = () => state.items.find(x=>x.id==="settings") || {id:"settings", kind:"settings"};
+const userName = () => { const st = settings(); return String(st.name || st.nameEn || st.nameZh || "").trim(); };
+const possessive = n => /s$/i.test(n) ? n+"’" : n+"’s";
+function kitchenTitle(){
+  const n = userName();
+  if(LANG==="en") return n ? `${possessive(n)} Kitchen` : "My Kitchen";
+  return n ? `${n}的厨房` : "我的厨房";
+}
+let pendingLang = null;
+/* ---------- Excel export: every ingredient and dish (self-made .xlsx, works offline) ---------- */
+const CRC_T = (()=>{ const t=new Uint32Array(256); for(let n=0;n<256;n++){ let c=n; for(let k=0;k<8;k++) c = c&1 ? 0xEDB88320^(c>>>1) : c>>>1; t[n]=c>>>0; } return t; })();
+function crc32(u8){ let c=0xFFFFFFFF; for(let i=0;i<u8.length;i++) c = CRC_T[(c^u8[i])&255]^(c>>>8); return (c^0xFFFFFFFF)>>>0; }
+function zipStore(files){   // files: [{name, data:Uint8Array}] -> Uint8Array (no compression)
+  const enc=new TextEncoder(), parts=[], central=[]; let off=0;
+  const u16=v=>[v&255,(v>>>8)&255], u32=v=>[v&255,(v>>>8)&255,(v>>>16)&255,(v>>>24)&255];
+  files.forEach(f=>{ const nm=enc.encode(f.name), crc=crc32(f.data), sz=f.data.length;
+    const lh=new Uint8Array([...u32(0x04034b50),...u16(20),...u16(0x0800),...u16(0),...u16(0),...u16(0x21),...u32(crc),...u32(sz),...u32(sz),...u16(nm.length),...u16(0)]);
+    parts.push(lh,nm,f.data);
+    central.push(new Uint8Array([...u32(0x02014b50),...u16(20),...u16(20),...u16(0x0800),...u16(0),...u16(0),...u16(0x21),...u32(crc),...u32(sz),...u32(sz),...u16(nm.length),...u16(0),...u16(0),...u16(0),...u16(0),...u32(0),...u32(off)]), nm);
+    off += lh.length+nm.length+sz; });
+  const cdSize = central.reduce((a,b)=>a+b.length,0);
+  const end=new Uint8Array([...u32(0x06054b50),...u16(0),...u16(0),...u16(files.length),...u16(files.length),...u32(cdSize),...u32(off),...u16(0)]);
+  const all=[...parts,...central,end], out=new Uint8Array(all.reduce((a,b)=>a+b.length,0)); let p=0; all.forEach(a=>{ out.set(a,p); p+=a.length; }); return out;
+}
+const xmlEsc = v => String(v).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g,"");
+function colName(i){ let s=""; i++; while(i>0){ const m=(i-1)%26; s=String.fromCharCode(65+m)+s; i=Math.floor((i-1)/26); } return s; }
+function sheetXml(head, rows, widths){
+  const cell=(v,r,c,style)=>{ const ref=colName(c)+(r+1);
+    if(typeof v==="number" && isFinite(v)) return `<c r="${ref}"${style?` s="${style}"`:""}><v>${v}</v></c>`;
+    if(v===""||v==null) return "";
+    return `<c r="${ref}" t="inlineStr"${style?` s="${style}"`:""}><is><t xml:space="preserve">${xmlEsc(v)}</t></is></c>`; };
+  const all=[head,...rows], last=colName(head.length-1)+Math.max(all.length,1);
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">`+
+    `<sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>`+
+    `<cols>${widths.map((w,i)=>`<col min="${i+1}" max="${i+1}" width="${w}" customWidth="1"/>`).join("")}</cols><sheetData>`+
+    all.map((row,r)=>`<row r="${r+1}">${row.map((v,c)=>cell(v,r,c, r===0?1:(typeof v==="number"?2:0))).join("")}</row>`).join("")+
+    `</sheetData><autoFilter ref="A1:${last}"/></worksheet>`;
+}
+function buildXlsx(sheets){   // sheets: [{name, head, rows, widths}]
+  const enc=new TextEncoder(), f=(name,str)=>({name, data:enc.encode(str)});
+  const safe = n => n.replace(/[\\\/\?\*\[\]:]/g," ").slice(0,31);
+  return zipStore([
+    f("[Content_Types].xml",`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>${sheets.map((s,i)=>`<Override PartName="/xl/worksheets/sheet${i+1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join("")}</Types>`),
+    f("_rels/.rels",`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`),
+    f("xl/workbook.xml",`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>${sheets.map((s,i)=>`<sheet name="${xmlEsc(safe(s.name))}" sheetId="${i+1}" r:id="rId${i+1}"/>`).join("")}</sheets><definedNames>${sheets.map((s,i)=>`<definedName name="_xlnm._FilterDatabase" localSheetId="${i}" hidden="1">'${xmlEsc(safe(s.name))}'!$A$1:$${colName(s.head.length-1)}$${s.rows.length+1}</definedName>`).join("")}</definedNames></workbook>`),
+    f("xl/_rels/workbook.xml.rels",`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${sheets.map((s,i)=>`<Relationship Id="rId${i+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i+1}.xml"/>`).join("")}<Relationship Id="rId${sheets.length+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`),
+    f("xl/styles.xml",`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><numFmts count="1"><numFmt numFmtId="164" formatCode="#,##0.00##"/></numFmts><fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font></fonts><fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF7A3824"/><bgColor indexed="64"/></patternFill></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="3"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"/><xf numFmtId="164" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`),
+    ...sheets.map((s,i)=>f(`xl/worksheets/sheet${i+1}.xml`, sheetXml(s.head, s.rows, s.widths)))
+  ]);
+}
+async function exportExcel(){
+  const r2 = n => isFinite(n) ? Math.round(n*10000)/10000 : "";
+  const ds = dishes(), is = ings();
+  const usedBy = {}; ds.forEach(d=>(d.lines||[]).forEach(l=>{ (usedBy[l.ingId]=usedBy[l.ingId]||[]).push(d.name||""); }));
+  const head1 = LANG==="en"
+    ? ["Ingredient","Chinese name","English name","Price paid (RM)","Pack size","Unit","Cost per unit (RM)","Per unit of","Cost per 100g / 100ml / piece (RM)","Used in (dishes)","Number of dishes"]
+    : ["食材","中文名","英文名","买价 (RM)","分量","单位","每单位成本 (RM)","单位","每 100g / 100ml / 个 成本 (RM)","用在哪些菜","几道菜用到"];
+  const rows1 = is.map(i=>{ const u=UNITS[i.unit]||UNITS.g, base=unitCost(i), per = u.fam==="count" ? base : base*100;
+    return [ingName(i), i.nameZh||autoNames(i.name).nameZh||"", i.nameEn||autoNames(i.name).nameEn||"", r2(num(i.price)), r2(num(i.qty)), uLabel(i.unit),
+      r2(base*u.f), uLabel(i.unit), r2(per), (usedBy[i.id]||[]).join(", "), (usedBy[i.id]||[]).length]; });
+  const head2 = LANG==="en" ? ["Dish","Cost (RM)","Selling price (RM)","Food cost %","Profit (RM)","Ingredients","Last updated"] : ["菜品","成本 (RM)","售价 (RM)","成本率 %","毛利 (RM)","食材数量","最后更新"];
+  const rows2 = ds.map(d=>{ const t=dishTotals(d); return [d.name||"", r2(t.total), isFinite(t.sell)&&t.sell>0 ? r2(t.sell) : "", isFinite(t.pct) ? Math.round(t.pct*10)/10 : "", isFinite(t.pct) ? r2(t.sell-t.per) : "", (d.lines||[]).length, d.updated ? new Date(d.updated).toLocaleDateString(LANG==="en"?"en-GB":"zh-CN") : ""]; });
+  const head3 = LANG==="en" ? ["Dish","Ingredient","Amount used","Unit","Cost (RM)","Bought at (RM)","Pack size","Pack unit"] : ["菜品","食材","用量","单位","成本 (RM)","买价 (RM)","分量","买的单位"];
+  const rows3 = []; ds.forEach(d=>(d.lines||[]).forEach(l=>{ const i=state.items.find(x=>x.id===l.ingId); if(!i) return;
+    rows3.push([d.name||"", ingName(i), r2(num(l.amount)), uLabel(l.unit||i.unit), r2(lineCost(l)), r2(num(i.price)), r2(num(i.qty)), uLabel(i.unit)]); }));
+  const out = buildXlsx([
+    {name:L("食材","Ingredients"), head:head1, rows:rows1, widths:[20,14,18,14,10,8,16,8,24,36,12]},
+    {name:L("菜品","Dishes"), head:head2, rows:rows2, widths:[24,12,16,12,12,12,14]},
+    {name:L("菜品食材明细","Dish breakdown"), head:head3, rows:rows3, widths:[24,20,12,8,12,14,10,10]} ]);
+  const d = new Date(); const stamp = `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,"0")}${String(d.getDate()).padStart(2,"0")}`;
+  saveFile(`kitchen-cost-${stamp}.xlsx`, new Blob([out], {type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}))
+    .then(()=>toast(L("已导出 Excel","Excel exported"))).catch(e=>{ if(!(e && e.code==="declined")) toast(L("导出失败","Couldn’t export")); });
+}
+function settingsSheet(){
+  pendingLang = LANG;
+  const row = (act, label, hint) => `<button class="set-row" data-act="${act}"><span>${label}</span>${hint?`<i>${hint}</i>`:""}<b aria-hidden="true">›</b></button>`;
+  openSheet(`
+    <h3>${L("设置","Settings")}</h3>
+    <label class="field">${lab("Username","名字")}<input id="s-name" value="${esc(userName())}" placeholder="${L("例如 阿明","e.g. Stuart")}" autocomplete="off"></label>
+    <p class="note" id="s-preview" style="margin:-6px 0 0;text-align:left"></p>
+    <div class="seg" role="group" aria-label="${L("语言","Language")}" style="align-self:flex-start">
+      <button data-act="pickLang" data-v="zh" aria-pressed="${LANG==="zh"}">中文</button>
+      <button data-act="pickLang" data-v="en" aria-pressed="${LANG==="en"}">English</button>
+    </div>
+    <button class="btn" data-act="saveSettings">${L("保存","Save")}</button>
+    <div class="set-list">
+      ${STANDALONE && FB_CONFIG ? (fb && fb.user ? `<div class="set-acct"><span>${esc(fb.user.email||"")}</span><button class="link" data-act="gSignOut">${L("退出登录","Sign out")}</button></div>` : row("gSignIn", L("用 Google 登录","Sign in with Google"), L("资料存到云端","save to the cloud"))) : ""}
+      ${row("backupOut", L("导出备份","Export backup"))}
+      ${row("backupIn", L("导入备份","Import backup"))}
+    </div>
+    <div id="confirm"></div>`);
+  const upd=()=>{ const n=$("#s-name").value.trim();
+    $("#s-preview").textContent = n ? (pendingLang==="en" ? `${possessive(n)} Kitchen` : `${n}的厨房`) : ""; };
+  $("#s-name").addEventListener("input",upd); upd();
+}
+
+/* ---------- views ---------- */
+const view = $("#view");
+const quick = {price:"30", qty:"50", unit:"pcs", used:"1"};
+
+function render(){
+  document.querySelectorAll(".tab").forEach(t=>t.setAttribute("aria-selected", String(t.dataset.tab===state.tab)));
+  const titles = {create:[draft&&!draft.isNew?"Edit":"Create",draft&&!draft.isNew?"修改菜品":"新建菜品"], cost:["Dishes","我的菜品"], pantry:["Ingredients","食材"], album:["Album","作 品 记 录"]};
+  applyLang();
+  const ht = $("#heroTitle");
+  document.querySelector(".hero").hidden = state.tab==="create";
+  ht.textContent = state.tab==="cost" ? kitchenTitle() : (LANG==="en" ? titles[state.tab][0] : titles[state.tab][1]);
+  const tb = {cost:L("菜品","Dishes"), pantry:L("食材","Ingredients")};
+  document.querySelectorAll(".tab").forEach(t=>{ t.querySelector("b").textContent = tb[t.dataset.tab]||""; });
+  const focusId = document.activeElement && document.activeElement.id;
+  renderSearchSlot();
+  document.documentElement.classList.toggle("scene-on", state.tab==="cost");
+  if(state.tab==="create"){ if(!draft) draft=newDraft(); view.innerHTML = createView(); }
+  else if(state.tab==="cost"){ view.innerHTML = costView(); ensureScene(); }
+  else if(state.tab==="pantry") view.innerHTML = pantryView();
+  else view.innerHTML = albumView();
+  if(focusId){ const el=document.getElementById(focusId); if(el){ el.focus(); if(el.setSelectionRange && (el.type==="text"||el.type==="search")){ const v=el.value.length; try{el.setSelectionRange(v,v);}catch(e){} } } }
+}
+
+function quickResult(){
+  const per = num(quick.price) / (num(quick.qty) * UNITS[quick.unit].f);
+  return per * num(quick.used) * UNITS[quick.unit].f;
+}
+function blobPath(seed){
+  const rand = rnd(seed); const ph=[rand()*6.28,rand()*6.28,rand()*6.28]; let d="";
+  for(let i=0;i<=72;i++){ const t=i/72*6.2832; const rr=45*(1+0.018*Math.sin(3*t+ph[0])+0.012*Math.sin(5*t+ph[1])+0.006*Math.sin(8*t+ph[2]));
+    d += (i?"L":"M") + (50+rr*Math.cos(t)).toFixed(1) + " " + (50+rr*Math.sin(t)).toFixed(1); }
+  return d+"Z";
+}
+const hash = str => { let h=2166136261; for(const ch of String(str)) h=Math.imul(h^ch.charCodeAt(0),16777619); return h>>>0; };
+function blankSticker(seed, inner){
+  return `<svg class="blank" viewBox="0 0 100 100" aria-hidden="true"><path d="${blobPath(seed)}" fill="var(--card)"/>${inner}</svg>`;
+}
+function renderSearchSlot(){
+  const slot = $("#searchSlot"); if(!slot) return;
+  if(state.tab==="create"){ if(slot.dataset.mode!=="home"||slot.dataset.lang!==LANG){ slot.dataset.mode="home"; slot.dataset.lang=LANG;
+      slot.innerHTML = `<button class="iconbtn" data-act="back" aria-label="${L("回到菜品","Back to dishes")}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11.2 12 4.5l8 6.7"/><path d="M6.5 9.6V19.5h11V9.6"/><path d="M10.2 19.5v-5h3.6v5"/></svg></button>`; } return; }
+  if(state.tab!=="cost"){ slot.innerHTML=""; slot.dataset.mode=""; return; }
+  const mode = state.searching ? "on" : "off";
+  if(slot.dataset.mode===mode && slot.dataset.lang===LANG) return;
+  slot.dataset.mode = mode; slot.dataset.lang = LANG;
+  slot.innerHTML = state.searching
+    ? `<label class="searchbar">${SEARCH_SVG}<input id="q-search" type="search" enterkeyhint="search" autocomplete="off" placeholder="${L("搜索菜名","Search dishes")}" value="${esc(state.q)}" aria-label="${L("搜索菜名","Search dishes")}"></label><button class="textbtn" data-act="searchOff">${L("取消","Cancel")}</button>`
+    : `<button class="iconbtn" data-act="searchOn" aria-label="${L("搜索","Search")}">${SEARCH_SVG}</button>`;
+}
+function costView(){
+  if(!state.ready) return `<div class="empty"><p>${L("载入中…","Loading…")}</p></div>`;
+  const q = state.q.trim().toLowerCase();
+  const list = state.searching && q ? dishes().filter(d=>(d.name||"").toLowerCase().includes(q)) : dishes();
+  const per = SLOTS.length;
+  const pages = Math.max(1, Math.ceil(list.length / per));
+  if(state.page > pages-1) state.page = pages-1;
+  const slice = list.slice(state.page*per, state.page*per+per);
+  const tilt = i => [-2,1.5,-1,2,-1.5,1,-2][i%7];
+  const plates = slice.map((d,i)=>{
+    const [x,y] = SLOTS[i]; const t = dishTotals(d);
+    return `<button class="plate" style="--x:${x};--y:${y};--r:${tilt(i)}deg" data-act="openDish" data-id="${d.id}" aria-label="${esc(d.name)}">
+      ${dishOnPlate(d)}<span class="card"><b>${esc(d.name||L("未命名","Untitled"))}</b><i>${money(t.total)}</i></span></button>`;
+  }).join("");
+  const add = state.searching ? "" : `<button class="plate add" style="--x:${CENTER[0]};--y:${CENTER[1]};--r:0deg" data-act="newDish" aria-label="${L("新菜","New dish")}">
+      <span class="dish-plate"><img class="dp-plate" src="${decoPlate("lace")}" alt=""><span class="dp-mark" style="color:#2B4E9B;font-family:var(--mono)">+</span></span><span class="card"><b>${L("新菜","New dish")}</b></span></button>`;
+  let foot = "";
+  if(pages>1) foot = `<div class="pager"><button data-act="pg" data-d="-1" ${state.page===0?"disabled":""} aria-label="${L("上一页","Previous page")}">‹</button>
+    <div class="dots">${Array.from({length:pages},(_,i)=>`<i class="${i===state.page?"on":""}"></i>`).join("")}</div>
+    <button data-act="pg" data-d="1" ${state.page>=pages-1?"disabled":""} aria-label="${L("下一页","Next page")}">›</button></div>`;
+  else if(state.searching && q && !list.length) foot = `<div class="pager"><span>${L("找不到「"+esc(state.q.trim())+"」","No dish called “"+esc(state.q.trim())+"”")}</span></div>`;
+  else if(!dishes().length) foot = `<div class="pager"><button class="seedlink" data-act="seed">${L("放一个冰淇淋例子看看","Try an ice cream example")}</button></div>`;
+  return `<div class="scene-wrap"><div class="scene" id="dgrid"><img class="scene-bg" alt="">${plates}${add}${foot}</div></div>`;
+}
+/* ---------- scan a receipt into ingredients (Claude reads it, you check it) ---------- */
+let rcpt = null;   // {status, rows, ctl, store}
+function receiptImage(file){
+  return new Promise((res,rej)=>{
+    const url = URL.createObjectURL(file); const img = new Image();
+    img.onload = ()=>{ const max = 1800, s = Math.min(1, max/Math.max(img.width,img.height));
+      const c = document.createElement("canvas"); c.width = Math.round(img.width*s); c.height = Math.round(img.height*s);
+      const x = c.getContext("2d"); x.fillStyle="#fff"; x.fillRect(0,0,c.width,c.height); x.drawImage(img,0,0,c.width,c.height);
+      URL.revokeObjectURL(url); c.toBlob(b=> b ? res(b) : rej(), "image/jpeg", .88); };
+    img.onerror = ()=>{ URL.revokeObjectURL(url); rej(); };
+    img.src = url;
+  });
+}
+function receiptPrompt(){
+  return `The attached image is a shop receipt from a chef's ingredient shopping (usually in Malaysia, prices in RM).
+Read every purchased line item and return the FOOD / COOKING INGREDIENTS only. Skip bags, cleaning products, service charge, tax, rounding, totals, discounts as separate lines, payment lines.
+For each ingredient give:
+- nameEn: a short generic English ingredient name (e.g. "Eggs", "Fresh milk", "Whipping cream"), no brand
+- nameZh: the same in Simplified Chinese (e.g. "鸡蛋", "鲜奶", "淡奶油")
+- price: the total amount paid for that line in RM as a number (after quantity and any item discount on that line)
+- qty and unit: the TOTAL amount bought on that line, read from the product description and quantity. unit is one of "g", "kg", "ml", "L", "pcs". Examples: "MILK 1L x2" → qty 2, unit "L"; "EGG GRADE A 30S" → qty 30, unit "pcs"; "BUTTER 250G" → qty 250, unit "g". If no size is printed, use the count bought with unit "pcs".
+- unsure: true if any of these values was hard to read or guessed, otherwise false
+Also give store (shop name or "") and date (as printed, or "").
+Reply with only JSON: {"store": string, "date": string, "items": [{"nameEn": string, "nameZh": string, "price": number, "qty": number, "unit": string, "unsure": boolean}]}
+If the image is not a receipt, reply {"store":"","date":"","items":[]}.`;
+}
+async function scanReceipt(file){
+  if(!sampleFn || !aiImages) return;
+  rcpt = {status:"reading", rows:[], store:"", ctl:new AbortController()};
+  drawReceipt();
+  try{
+    const blob = await receiptImage(file);
+    const res = await sampleFn.json(receiptPrompt(), {images:[blob], signal: rcpt.ctl.signal, cache:false, modelTier:"default"});
+    const items = Array.isArray(res && res.items) ? res.items : [];
+    rcpt.store = String(res && res.store || ""); rcpt.date = String(res && res.date || "");
+    rcpt.rows = items.slice(0,40).map((it,i)=>{
+      const unit = UNITS[it.unit] ? it.unit : (UNIT_MAP[String(it.unit||"").toLowerCase()] || "pcs");
+      const en = String(it.nameEn||"").trim(), zh = String(it.nameZh||"").trim();
+      const hit = matchIng(zh) || matchIng(en);
+      return { key:"r"+i, on:true, nameEn:en, nameZh:zh, name: LANG==="en" ? (en||zh) : (zh||en),
+        price: isFinite(+it.price) ? String(+(+it.price).toFixed(2)) : "", qty: isFinite(+it.qty) && +it.qty>0 ? String(+it.qty) : "", unit,
+        unsure: !!it.unsure, matchId: hit ? hit.id : "" };
+    });
+    rcpt.status = rcpt.rows.length ? "review" : "empty";
+  }catch(e){
+    const c = e && e.code;
+    if(c==="cancelled"){ rcpt = null; closeSheet(); return; }
+    rcpt.status = "error";
+    rcpt.err = c==="not_granted"||c==="sampling_disabled" ? L("需要允许这个页面使用 Claude 才能读收据","Allow this page to use Claude to read receipts")
+      : c==="rate_limited" ? L("用得太频繁了，等一下再试","Too many tries. Wait a moment.")
+      : c==="image_rejected" ? L("这张照片用不了，换一张试试","That photo can’t be used. Try another.")
+      : L("读不出来，再试一次或换一张清楚一点的照片","Couldn’t read it. Try again or use a clearer photo.");
+    if(c==="not_granted"||c==="sampling_disabled") sampleFn = null;
+  }
+  drawReceipt();
+}
+function drawReceipt(){
+  if(!rcpt) return;
+  const unitOpt = sel => Object.keys(UNITS).map(k=>`<option value="${k}" ${k===sel?"selected":""}>${uLabel(k)}</option>`).join("");
+  let body = "";
+  if(rcpt.status==="reading"){
+    body = `<div class="rc-wait"><div class="ai-status busy">${L("正在读取收据","Reading the receipt")}</div><p class="note">${L("大约需要十几秒","This takes a few seconds")}</p></div>
+      <button class="btn ghost" data-act="rcStop">${L("停止","Stop")}</button>`;
+  } else if(rcpt.status==="error" || rcpt.status==="empty"){
+    body = `<p class="note">${rcpt.status==="empty" ? L("这张照片里找不到食材，换一张试试。","No ingredients found on this photo. Try another one.") : esc(rcpt.err)}</p>
+      <div class="actions"><button class="btn ghost" data-act="close">${L("关闭","Close")}</button><button class="btn" data-act="scanReceipt">${L("再拍一张","Try another")}</button></div>`;
+  } else {
+    const n = rcpt.rows.filter(r=>r.on).length;
+    body = `<p class="note" style="text-align:left;margin:0">${rcpt.store?`<b>${esc(rcpt.store)}</b>${rcpt.date?" · "+esc(rcpt.date):""}<br>`:""}${L("请检查一遍：名称、价钱、分量都可以改，不要的取消勾选。","Check each line. You can edit name, price and size, and untick anything you don’t want.")}</p>
+    <div class="rc-list">${rcpt.rows.map((r,i)=>{
+      const old = r.matchId && state.items.find(x=>x.id===r.matchId);
+      const tag = old ? `<span class="pill">${L("更新","Update")}</span><span class="rc-old">${L("原本","was")} ${money(num(old.price))} / ${esc(old.qty)}${uLabel(old.unit)}</span>` : `<span class="pill">${L("新增","New")}</span>`;
+      return `<div class="rc-row ${r.on?"":"off"}">
+        <div class="rc-top"><input type="checkbox" id="rc-on-${i}" data-rc="${i}" data-f="on" ${r.on?"checked":""} aria-label="${L("要这一项","Include")}">
+          <input id="rc-name-${i}" data-rc="${i}" data-f="name" value="${esc(r.name)}" aria-label="${L("名称","Name")}" autocomplete="off"></div>
+        <div class="rc-mid">
+          <label class="field">${lab("Paid","买价 "+CUR,"Paid · "+CUR)}<input id="rc-price-${i}" class="num" data-rc="${i}" data-f="price" inputmode="decimal" value="${esc(r.price)}"></label>
+          <label class="field">${lab("Pack","分量","Size")}<div class="row qty"><input id="rc-qty-${i}" class="num" data-rc="${i}" data-f="qty" inputmode="decimal" value="${esc(r.qty)}"><select id="rc-unit-${i}" data-rc="${i}" data-f="unit" aria-label="${L("单位","Unit")}">${unitOpt(r.unit)}</select></div></label>
+        </div>
+        <div class="rc-meta">${tag}${r.unsure?`<span class="pill warn">${L("看不太清楚，请核对","Hard to read, please check")}</span>`:""}</div>
+      </div>`; }).join("")}</div>
+    <button class="btn" data-act="rcSave" ${n?"":"disabled"}>${L(`保存 ${n} 样食材`,`Save ${n} ingredient${n===1?"":"s"}`)}</button>
+    <button class="btn ghost" data-act="close">${L("取消","Cancel")}</button>`;
+  }
+  const html = `<h3>${L("扫描收据","Scan receipt")}</h3>${body}`;
+  const cur = layer.querySelector(".sheet");
+  if(cur){ const top=cur.scrollTop; cur.innerHTML = html; cur.scrollTop = top; }
+  else openSheet(html);
+}
+function saveReceipt(){
+  const rows = rcpt.rows.filter(r=>r.on);
+  for(const r of rows){
+    if(!r.name.trim() || !(num(r.price)>=0) || !(num(r.qty)>0)){ toast(L(`「${r.name||"?"}」还没填好价钱或分量`,`${r.name||"?"}: add price and size`)); return; }
+  }
+  rows.forEach(r=>{
+    const old = r.matchId && state.items.find(x=>x.id===r.matchId);
+    const nm = r.name.trim();
+    const names = LANG==="en" ? {nameEn:nm, nameZh:r.nameZh || autoNames(nm).nameZh} : {nameZh:nm, nameEn:r.nameEn || autoNames(nm).nameEn};
+    if(old) put(Object.assign({}, old, {price:String(num(r.price)), qty:String(num(r.qty)), unit:r.unit}));
+    else put(Object.assign({id:uid("ing"), kind:"ing", name:nm, price:String(num(r.price)), qty:String(num(r.qty)), unit:r.unit}, names));
+  });
+  toast(L(`已保存 ${rows.length} 样`,`Saved ${rows.length}`));
+  rcpt = null; closeSheet();
+}
+
+function pantryView(){
+  let html = `<section class="section"><div class="sec-head"><span></span>${state.ready?`<button class="plusbtn" data-act="addMenu" aria-label="${L("添加食材","Add ingredient")}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>`:""}</div>`;
+  if(!state.ready) return html + `<div class="empty"><p>${L("载入中…","Loading…")}</p></div></section>`;
+  if(!ings().length) return html + `<div class="empty"><p>${L(`记下每样食材买的价钱和分量，例如 鸡蛋 50 个 ${CUR}30、牛奶 1000ml ${CUR}15。`,`Record what each ingredient cost and how much you got, e.g. 50 eggs for ${CUR}30, 1000ml milk for ${CUR}15.`)}</p><button class="btn small" data-act="newIng">${L("添加第一样食材","Add your first ingredient")}</button></div></section>`;
+  html += `<div class="list">` + ings().map(i=>`
+    <button class="item" data-act="openIng" data-id="${i.id}">
+      <div class="body"><div class="name">${esc(ingName(i))}</div>
+        <div class="meta">${money(num(i.price))} / ${esc(i.qty)}${uLabel(i.unit)}</div></div>
+      <div class="price">${unitPriceText(i).split(" / ")[0]}<small>/ ${unitPriceText(i).split(" / ")[1]||""}</small></div>
+    </button>`).join("") + `</div><p class="note">${L("改价钱之后，用到它的菜品成本会自动更新。","Change a price and every dish using it updates.")}</p>`;
+  return html + `</section>`;
+}
+
+function albumView(){
+  let html = `<section class="section"><div class="sec-head"><h2>${L("作品记录","Journal")}</h2>${state.ready?`<button class="link" data-act="snap" data-dish="">${L("+ 照片","+ Photo")}</button>`:""}</div>`;
+  if(!state.ready) return html + `<div class="empty"><p>${L("载入中…","Loading…")}</p></div></section>`;
+  const ps = photos();
+  if(!ps.length) return html + `<div class="empty"><p>${L("每次做完一道菜，拍一张照记下来。可以连到菜品，看得到当时的成本。","Snap a photo each time you make a dish. Link it to a recipe to see its cost.")}</p><button class="btn small" data-act="snap" data-dish="">${L("拍照记录","Take a photo")}</button></div></section>`;
+  const groups = {};
+  ps.forEach(p=>{ const k = new Date(p.at).toLocaleDateString("en-US",{month:"short",year:"numeric"}); (groups[k]=groups[k]||[]).push(p); });
+  Object.keys(groups).forEach(k=>{
+    html += `<div class="day">${esc(k)} · ${groups[k].length}</div><div class="grid">` +
+      groups[k].map(p=>`<button data-act="openPhoto" data-id="${p.id}" aria-label="${L("照片","Photo")}"><img src="${p.data}" alt=""></button>`).join("") + `</div>`;
+  });
+  return html + `</section>`;
+}
+
+/* ---------- sheets ---------- */
+const layer = $("#layer");
+function openSheet(html){
+  const cur = layer.querySelector(".sheet");
+  if(cur){ const top=cur.scrollTop; cur.innerHTML = html; cur.scrollTop = top; return; }
+  layer.innerHTML = `<div class="scrim" data-act="closeBg"><div class="sheet" role="dialog" aria-modal="true">${html}</div></div>`;
+  const f=layer.querySelector("input,select,textarea"); if(f) f.focus({preventScroll:true});
+}
+function closeSheet(){ if(typeof rcpt!=="undefined" && rcpt && rcpt.status==="reading" && rcpt.ctl) rcpt.ctl.abort(); layer.innerHTML=""; }
+
+function ingSheet(id){
+  const i = state.items.find(x=>x.id===id) || {id:uid("ing"), kind:"ing", name:"", price:"", qty:"", unit:"g"};
+  const opts = Object.keys(UNITS).map(k=>`<option value="${k}" ${k===i.unit?"selected":""}>${uLabel(k)}</option>`).join("");
+  const used = dishes().filter(d=>(d.lines||[]).some(l=>l.ingId===i.id)).length;
+  openSheet(`
+    <h3>${id?L("修改食材","Edit Ingredient"):L("添加食材","New Ingredient")}</h3>
+    <div class="row two">
+      <label class="field">${lab("Name","名称")}<input id="f-name" value="${esc(ingName(i))}" placeholder="${L("鸡蛋","Eggs")}" autocomplete="off"></label>
+      <label class="field">${lab("Chinese name","英文名称")}<input id="f-alt" value="${esc(LANG==="en" ? (i.nameZh||"") : (i.nameEn||""))}" placeholder="${L("Eggs","鸡蛋")}" autocomplete="off"></label>
+    </div>
+    <div class="row two">
+      <label class="field">${lab("Paid","买价 "+CUR,"Paid · "+CUR)}<input id="f-price" class="num" inputmode="decimal" value="${esc(i.price)}" placeholder="30"></label>
+      <label class="field">${lab("Pack","分量","Pack size")}<div class="row qty"><input id="f-qty" class="num" inputmode="decimal" value="${esc(i.qty)}" placeholder="50"><select id="f-unit" aria-label="${L("单位","Unit")}">${opts}</select></div></label>
+    </div>
+    <p class="note" id="f-preview"></p>
+    <div class="actions">${id?`<button class="btn danger" data-act="askDelIng" data-id="${i.id}">${L("删除","Delete")}</button>`:""}<button class="btn" data-act="saveIng" data-id="${i.id}">${L("保存","Save")}</button></div>
+    <div id="confirm"></div>
+    <button class="btn ghost" data-act="close">${L("取消","Cancel")}</button>`);
+  layer.dataset.used = used;
+  const upd = ()=>{ const t={price:$("#f-price").value, qty:$("#f-qty").value, unit:$("#f-unit").value}; $("#f-preview").textContent = unitPriceText(t) ? L("等于 ","That’s ") + unitPriceText(t) : L("填好价钱和分量就会显示单价","Fill in price and pack size to see the unit price"); };
+  ["#f-price","#f-qty","#f-unit"].forEach(s=>$(s).addEventListener("input",upd)); upd();
+  let altTouched = !!$("#f-alt").value;
+  $("#f-alt").addEventListener("input",()=>{ altTouched = !!$("#f-alt").value; });
+  $("#f-name").addEventListener("input",()=>{ if(altTouched) return; const a=autoNames($("#f-name").value); $("#f-alt").value = (LANG==="en" ? a.nameZh : a.nameEn) || ""; });
+}
+
+let draft = null;
+const DKEY = "kitchen-cost-draft";
+try{ const d = JSON.parse(localStorage.getItem(DKEY)||"null"); if(d && d.lines) draft = d; }catch(e){}
+function keepDraft(){ try{ localStorage.setItem(DKEY, JSON.stringify(draft)); }catch(e){} }
+function blankLine(){ return {ingId:"", name:"", price:"", qty:"", packUnit:"g", amount:"", unit:"g"}; }
+function newDraft(){ return {id:uid("dish"), name:"", portions:"1", sell:"", lines:[blankLine()], isNew:true}; }
+function draftFromDish(d){
+  const lines = (d.lines||[]).map(l=>{
+    const ing = state.items.find(i=>i.id===l.ingId); if(!ing) return null;
+    return {ingId:ing.id, name:ingName(ing), price:ing.price, qty:ing.qty, packUnit:ing.unit, amount:l.amount, unit:l.unit||ing.unit};
+  }).filter(Boolean);
+  if(!lines.length) lines.push(blankLine());
+  return {id:d.id, name:d.name||"", portions:d.portions||"1", sell:d.sell||"", art:d.art||"", sticker:d.sticker||"", show:d.show||"", plate:d.plate||"", lines, isNew:false};
+}
+function draftLineCost(l){
+  const pu = UNITS[l.packUnit], uu = UNITS[l.unit];
+  if(!pu || !uu || pu.fam!==uu.fam) return NaN;
+  const base = num(l.qty)*pu.f; if(!(base>0)) return NaN;
+  return num(l.price)/base * num(l.amount) * uu.f;
+}
+function draftTotals(){
+  const filled = draft.lines.filter(l=>l.name.trim());
+  const total = filled.reduce((s,l)=>{ const c=draftLineCost(l); return s+(isFinite(c)?c:0); },0);
+  const portions = 1;
+  const per = total/portions, sell = num(draft.sell);
+  return {total, per, portions, sell, pct: sell>0 ? per/sell*100 : NaN};
+}
+function artUrl(svg){ return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg).replace(/'/g,"%27").replace(/\(/g,"%28").replace(/\)/g,"%29"); }
+/* ---------- decorative plates: the dish photo sits in the middle ---------- */
+const PLATE_STYLES = ["porcelain","goldRim","stoneware","matteBlack","celadon","indigoLine","blueFloral","cherry","pinkScallop","blueWave","radial","daisy","strawberry","lace"];
+const PLATE_INNER = .62;   // photo diameter as a share of the plate
+function platePath(f, cx, cy, R, scallops, depth){
+  f.beginPath();
+  for(let i=0;i<=360;i++){ const t=i/360*6.2832; const r = scallops ? R*(1 - depth + depth*Math.abs(Math.cos(t*scallops/2))) : R;
+    const X=cx+r*Math.cos(t), Y=cy+r*Math.sin(t); i?f.lineTo(X,Y):f.moveTo(X,Y); }
+  f.closePath();
+}
+function around(n, fn, offset){ for(let i=0;i<n;i++){ const t=(i+(offset||0))/n*6.2832; fn(t,i); } }
+function flower(f, x, y, r, petal, centre){
+  f.fillStyle = petal; for(let k=0;k<5;k++){ const a=k/5*6.2832; f.beginPath(); f.ellipse(x+Math.cos(a)*r*.55, y+Math.sin(a)*r*.55, r*.45, r*.3, a, 0, 6.2832); f.fill(); }
+  f.fillStyle = centre; f.beginPath(); f.arc(x,y,r*.25,0,6.2832); f.fill();
+}
+function leaf(f, x, y, len, ang, col){ f.save(); f.translate(x,y); f.rotate(ang); f.fillStyle=col; f.beginPath(); f.moveTo(0,0); f.quadraticCurveTo(len*.5,-len*.35,len,0); f.quadraticCurveTo(len*.5,len*.35,0,0); f.fill(); f.restore(); }
+function drawDecoPlate(style, S){
+  const c=document.createElement("canvas"); c.width=S; c.height=S; const f=c.getContext("2d");
+  const cx=S/2, cy=S/2, R=S*.46, rin=R*PLATE_INNER/0.92;   // rim starts just outside the photo
+  const BLUE="#2B4E9B", NAVY="#1D2F6F", RED="#D8423A", GREEN="#4E8A4E", PINK="#F1C9C4", PALE="#CFE2E5", CREAM="#FBF7EF";
+  const base = {daisy:PALE, pinkScallop:"#FFF6F2", porcelain:"#FDFDFB", goldRim:"#FCFBF7", stoneware:"#E6DED1", matteBlack:"#2B2826", celadon:"#D3DDD1", indigoLine:"#FBFAF6"}[style] || CREAM;
+  const scal = {pinkScallop:[16,.035], daisy:[20,.03], lace:[24,.025]}[style];
+  // body + shadow
+  f.save(); f.shadowColor="rgba(40,25,15,.30)"; f.shadowBlur=S*.04; f.shadowOffsetY=S*.022;
+  platePath(f,cx,cy,R,scal&&scal[0],scal&&scal[1]); f.fillStyle=base; f.fill(); f.restore();
+  // glaze sheen
+  f.save(); platePath(f,cx,cy,R,scal&&scal[0],scal&&scal[1]); f.clip();
+  const g=f.createRadialGradient(cx-R*.35,cy-R*.4,R*.05,cx,cy,R); g.addColorStop(0,"rgba(255,255,255,.55)"); g.addColorStop(.6,"rgba(255,255,255,0)"); g.addColorStop(1,"rgba(120,100,80,.10)");
+  f.fillStyle=g; f.fillRect(0,0,S,S); f.restore();
+  const rr = (rin+R)/2, band = R-rin;   // middle of the rim, rim width
+  f.lineCap="round";
+  if(style==="blueFloral"){
+    f.strokeStyle=BLUE; f.lineWidth=S*.006; f.beginPath(); f.arc(cx,cy,R*.95,0,6.2832); f.stroke();
+    around(10,(t)=>{ const x=cx+rr*Math.cos(t), y=cy+rr*Math.sin(t); flower(f,x,y,band*.36,BLUE,CREAM);
+      leaf(f, cx+rr*Math.cos(t+.2), cy+rr*Math.sin(t+.2), band*.42, t+1.9, BLUE); leaf(f, cx+rr*Math.cos(t-.2), cy+rr*Math.sin(t-.2), band*.42, t-1.9+Math.PI, BLUE); });
+    around(20,(t)=>{ f.fillStyle=NAVY; f.beginPath(); f.arc(cx+R*.86*Math.cos(t),cy+R*.86*Math.sin(t),S*.006,0,6.2832); f.fill(); },.5);
+  }
+  if(style==="cherry"){
+    f.strokeStyle="#E79A8F"; f.lineWidth=S*.008; f.beginPath(); f.arc(cx,cy,R*.97,0,6.2832); f.stroke();
+    around(6,(t)=>{ const x=cx+rr*Math.cos(t), y=cy+rr*Math.sin(t), r=band*.2;
+      f.strokeStyle=GREEN; f.lineWidth=S*.007; f.beginPath(); f.moveTo(x-r*.9,y+r*.2); f.quadraticCurveTo(x,y-r*2.4,x+r*.4,y-r*2.6); f.moveTo(x+r*1.1,y+r*.1); f.quadraticCurveTo(x+r*.6,y-r*1.6,x+r*.4,y-r*2.6); f.stroke();
+      leaf(f,x+r*.4,y-r*2.6,r*1.8,-.4,GREEN);
+      f.fillStyle=RED; [[x-r*.9,y+r*.6],[x+r*1.1,y+r*.5]].forEach(([a,b])=>{ f.beginPath(); f.arc(a,b,r,0,6.2832); f.fill(); f.fillStyle="rgba(255,255,255,.6)"; f.beginPath(); f.arc(a-r*.35,b-r*.35,r*.25,0,6.2832); f.fill(); f.fillStyle=RED; }); },.25);
+  }
+  if(style==="pinkScallop"){
+    f.save(); platePath(f,cx,cy,R,16,.035); f.clip(); f.fillStyle=PINK; f.beginPath(); f.arc(cx,cy,R,0,6.2832); f.arc(cx,cy,rin+band*.15,0,6.2832,true); f.fill(); f.restore();
+    f.fillStyle=base; around(16,(t)=>{ f.beginPath(); f.arc(cx+(rin+band*.15)*Math.cos(t),cy+(rin+band*.15)*Math.sin(t),band*.28,0,6.2832); f.fill(); });
+    f.strokeStyle=RED; f.lineWidth=S*.005; around(16,(t)=>{ f.beginPath(); f.arc(cx+(rin+band*.15)*Math.cos(t),cy+(rin+band*.15)*Math.sin(t),band*.28,t-1.3,t+1.3); f.stroke(); });
+    f.fillStyle=GREEN; around(16,(t)=>{ f.beginPath(); f.arc(cx+R*.86*Math.cos(t),cy+R*.86*Math.sin(t),S*.008,0,6.2832); f.fill(); },.5);
+  }
+  if(style==="blueWave"){
+    f.strokeStyle=BLUE; f.lineWidth=band*.16;
+    [.0,.42].forEach((o,j)=>{ around(14,(t)=>{ f.beginPath(); f.arc(cx+(R*.96-o*band)*Math.cos(t),cy+(R*.96-o*band)*Math.sin(t),band*.34,t+Math.PI*.15,t+Math.PI*1.85,false); f.stroke(); }, j*.5); });
+  }
+  if(style==="radial"){
+    f.strokeStyle=BLUE; f.lineWidth=S*.012;
+    around(44,(t)=>{ f.beginPath(); f.moveTo(cx+(rin+band*.2)*Math.cos(t),cy+(rin+band*.2)*Math.sin(t)); f.lineTo(cx+R*.9*Math.cos(t),cy+R*.9*Math.sin(t)); f.stroke(); });
+    f.lineWidth=S*.008; [R*.96, rin+band*.08].forEach(r=>{ f.beginPath(); f.arc(cx,cy,r,0,6.2832); f.stroke(); });
+  }
+  if(style==="daisy"){
+    around(10,(t)=>{ const x=cx+rr*Math.cos(t), y=cy+rr*Math.sin(t);
+      leaf(f,cx+rr*Math.cos(t+.17),cy+rr*Math.sin(t+.17),band*.4,t+1.6,GREEN); leaf(f,cx+rr*Math.cos(t-.17),cy+rr*Math.sin(t-.17),band*.4,t-1.6,GREEN);
+      flower(f,x,y,band*.34,"#FFFFFF","#E9B949"); });
+    f.strokeStyle="rgba(255,255,255,.9)"; f.lineWidth=S*.004; f.setLineDash([S*.008,S*.01]); f.beginPath(); f.arc(cx,cy,R*.95,0,6.2832); f.stroke(); f.setLineDash([]);
+  }
+  if(style==="strawberry"){
+    const rnd2=rnd(31);
+    around(11,(t,i)=>{ const r=rin+band*(.25+rnd2()*.5); const x=cx+r*Math.cos(t), y=cy+r*Math.sin(t), s=band*.2, a=rnd2()*6.28;
+      f.save(); f.translate(x,y); f.rotate(a); f.fillStyle=RED; f.beginPath(); f.moveTo(0,s*1.2); f.bezierCurveTo(-s*1.2,s*.2,-s*.9,-s*.9,0,-s*.7); f.bezierCurveTo(s*.9,-s*.9,s*1.2,s*.2,0,s*1.2); f.fill();
+      f.fillStyle=GREEN; f.beginPath(); f.moveTo(-s*.6,-s*.75); f.lineTo(0,-s*.45); f.lineTo(s*.6,-s*.75); f.lineTo(0,-s*1.05); f.closePath(); f.fill();
+      f.fillStyle="#FFE7A8"; [[-.3,.1],[.3,.1],[0,.5],[-.15,-.25],[.2,-.2]].forEach(([u,v])=>{ f.fillRect(u*s,v*s,s*.08,s*.12); }); f.restore(); }, .1);
+  }
+  if(style==="lace"){
+    f.strokeStyle=BLUE; f.lineWidth=S*.004; f.beginPath(); platePath(f,cx,cy,R*.95,24,.025); f.stroke();
+    f.fillStyle=BLUE; around(48,(t)=>{ f.beginPath(); f.arc(cx+R*.88*Math.cos(t),cy+R*.88*Math.sin(t),S*.0045,0,6.2832); f.fill(); });
+    around(12,(t)=>{ flower(f,cx+R*.8*Math.cos(t),cy+R*.8*Math.sin(t),band*.16,"#7F97C9","#FFFFFF"); },.5);
+  }
+  /* quiet, premium plates */
+  if(style==="porcelain"){
+    f.strokeStyle="rgba(150,140,125,.22)"; f.lineWidth=S*.004; f.beginPath(); f.arc(cx,cy,R*.985,0,6.2832); f.stroke();
+  }
+  if(style==="goldRim"){
+    f.strokeStyle="#B9975B"; f.lineWidth=S*.007; f.beginPath(); f.arc(cx,cy,R*.955,0,6.2832); f.stroke();
+    f.lineWidth=S*.0025; f.beginPath(); f.arc(cx,cy,R*.925,0,6.2832); f.stroke();
+  }
+  if(style==="stoneware"){
+    const rs=rnd(77); f.save(); f.beginPath(); f.arc(cx,cy,R,0,6.2832); f.clip();
+    for(let i=0;i<260;i++){ const a=rs()*6.2832, d=Math.sqrt(rs())*R; f.fillStyle=`rgba(95,70,50,${.18+rs()*.35})`; f.beginPath(); f.arc(cx+Math.cos(a)*d,cy+Math.sin(a)*d,S*(.0015+rs()*.003),0,6.2832); f.fill(); }
+    f.strokeStyle="rgba(140,98,62,.75)"; f.lineWidth=S*.012; f.beginPath(); f.arc(cx,cy,R*.985,0,6.2832); f.stroke();   // raw clay edge
+    f.restore();
+  }
+  if(style==="matteBlack"){
+    const g2=f.createRadialGradient(cx-R*.3,cy-R*.35,R*.05,cx,cy,R); g2.addColorStop(0,"rgba(255,255,255,.10)"); g2.addColorStop(1,"rgba(0,0,0,.15)");
+    f.save(); f.beginPath(); f.arc(cx,cy,R,0,6.2832); f.clip(); f.fillStyle=g2; f.fillRect(0,0,S,S); f.restore();
+    f.strokeStyle="rgba(255,255,255,.14)"; f.lineWidth=S*.004; f.beginPath(); f.arc(cx,cy,R*.97,0,6.2832); f.stroke();
+  }
+  if(style==="celadon"){
+    f.strokeStyle="rgba(95,120,95,.35)"; f.lineWidth=S*.004; f.beginPath(); f.arc(cx,cy,R*.975,0,6.2832); f.stroke();
+    f.fillStyle="rgba(255,255,255,.25)"; f.beginPath(); f.arc(cx,cy,R*.9,Math.PI*1.05,Math.PI*1.55); f.arc(cx,cy,R*.82,Math.PI*1.55,Math.PI*1.05,true); f.fill();
+  }
+  if(style==="indigoLine"){
+    f.strokeStyle="#2F4A6D"; f.lineWidth=S*.005; f.beginPath(); f.arc(cx,cy,R*.93,0,6.2832); f.stroke();
+  }
+  // the well where the photo sits
+  f.strokeStyle = style==="matteBlack" ? "rgba(255,255,255,.08)" : "rgba(120,100,80,.18)"; f.lineWidth=S*.006; f.beginPath(); f.arc(cx,cy,rin*.985,0,6.2832); f.stroke();
+  return c.toDataURL("image/png");
+}
+const decoCache = {};
+function decoPlate(style){ return decoCache[style] || (decoCache[style] = drawDecoPlate(style, 360)); }
+function plateStyleOf(d){ return PLATE_STYLES.includes(d.plate) ? d.plate : PLATE_STYLES[hash(d.id) % PLATE_STYLES.length]; }
+function dishOnPlate(d, mark){
+  const photo = stampSrc(d);
+  const mid = photo ? `<img class="dp-photo" src="${photo}" alt="">`
+    : `<span class="dp-mark">${esc(mark || (d.name||"?").slice(0,1))}</span>`;
+  return `<span class="dish-plate"><img class="dp-plate" src="${decoPlate(plateStyleOf(d))}" alt="">${mid}</span>`;
+}
+
+function stampSrc(d){
+  const useSticker = !!d.sticker;
+  return useSticker ? d.sticker : d.art ? artUrl(d.art) : "";
+}
+let stBusy = false;
+let picMenuOpen = 0; // 0 closed, 1 "remake photo", 2 camera / album
+function stampHtml(d){
+  const busy = !!aiCtl || stBusy;
+  const src = stampSrc(d);
+  const inner = `<div class="art ${busy?"busy":""}">${dishOnPlate(d, src ? "" : "+")}</div>`;
+  const art = `<button class="art-btn" data-act="picMenu" ${busy?"disabled":""} aria-label="${src?L("换照片","Change photo"):L("加照片","Add photo")}">${inner}</button>`;
+  const seg = false ? `<div class="seg" role="group" aria-label="${L("显示","Show")}">
+      <button data-act="show" data-v="art" aria-pressed="${d.show!=="sticker"}">${L("插画","Illustration")}</button>
+      <button data-act="show" data-v="sticker" aria-pressed="${d.show==="sticker"}">${L("贴纸","Sticker")}</button></div>` : "";
+  const aiOk = false;
+  let buttons;
+  if(aiCtl) buttons = `<button class="btn ghost" data-act="aiStop">${L("停止","Stop")}</button>`;
+  else if(stBusy) buttons = "";
+  else buttons = picMenuOpen===1 ? `<div class="picmenu">
+      <button data-act="picStep2">${L("换一张照片","Remake photo")}</button>
+      <button class="cancel" data-act="picClose">${L("取消","Cancel")}</button></div>`
+    : picMenuOpen===2 ? `<div class="picmenu">
+      <button data-act="stCam">${L("拍照","Take photo")}</button>
+      <button data-act="stAlbum">${L("从相册选","Choose from album")}</button>
+      <button class="cancel" data-act="picClose">${L("取消","Cancel")}</button></div>` : "";
+  const picker = `<div class="plate-pick" role="radiogroup" aria-label="${L("选盘子","Choose a plate")}">${PLATE_STYLES.map(st=>`<button role="radio" aria-checked="${plateStyleOf(d)===st}" data-act="pickPlate" data-v="${st}"><img src="${decoPlate(st)}" alt=""></button>`).join("")}</div>`;
+  return `<section class="section"><div class="stamp">
+    ${art}${src?"":`<p class="note" style="margin:-6px 0 0">${L("点盘子加照片","Tap the plate to add a photo")}</p>`}${seg}
+    ${picker}
+    <div id="dishName" class="dish-title" contenteditable="true" role="textbox" aria-label="${L("菜名","Dish name")}" data-ph="${L("点这里写菜名","Tap to name the dish")}" spellcheck="false" enterkeyhint="done">${esc(d.name)}</div>
+    <div class="ai-status ${busy?"busy":""}" id="ai-status">${esc(aiMsg)}</div>
+    ${buttons}
+  </div></section>`;
+}
+
+/* ---------- sticker filter (on-device) ---------- */
+const GOUACHE = [[217,102,63],[200,85,47],[225,167,58],[242,210,122],[245,236,218],[143,169,138],[46,90,69],[90,52,36],[217,149,138],[120,72,48],[250,246,238],[60,48,40]];
+function loadImg(src){ return new Promise((res,rej)=>{ const url = typeof src==="string" ? src : URL.createObjectURL(src); const im=new Image(); im.onload=()=>res(im); im.onerror=rej; im.src=url; }); }
+function boxBlur(px, W, H, rad){
+  const out = new Float32Array(px.length), tmp = new Float32Array(px.length);
+  for(let pass=0; pass<2; pass++){
+    const src = pass===0 ? px : tmp, dst = pass===0 ? tmp : out;
+    for(let y=0;y<H;y++) for(let x=0;x<W;x++){
+      let r=0,g=0,b=0,n=0;
+      for(let k=-rad;k<=rad;k++){
+        const xx = pass===0 ? Math.min(W-1,Math.max(0,x+k)) : x, yy = pass===0 ? y : Math.min(H-1,Math.max(0,y+k));
+        const i=(yy*W+xx)*4; r+=src[i]; g+=src[i+1]; b+=src[i+2]; n++;
+      }
+      const o=(y*W+x)*4; dst[o]=r/n; dst[o+1]=g/n; dst[o+2]=b/n; dst[o+3]=255;
+    }
+  }
+  return out;
+}
+function rnd(seed){ let t=seed>>>0; return ()=>{ t+=0x6D2B79F5; let x=Math.imul(t^t>>>15,1|t); x^=x+Math.imul(x^x>>>7,61|x); return ((x^x>>>14)>>>0)/4294967296; }; }
+/* ---------- folk-art painting helpers ---------- */
+const PAINT = {
+  wall:"#EEE7DA", floor:"#D8C6A4", floorLine:"#C9B48C", base:"#5B4434",
+  wood:"#5E4130", woodDeep:"#47301F", woodHi:"#7A5A44", cream:"#FBF7EF",
+  ink:"#2E2520", indigo:"#2F4A6D", indigoSoft:"#5D7696", iron:"#7A5236", glaze:"#E9DFCF", speck:"#8A6A4F", celadon:"#A9B9A4"
+};
+function shade(hex, f){ const n=parseInt(hex.slice(1),16); let r=n>>16,g=n>>8&255,b=n&255;
+  if(f>0){ r+= (255-r)*f; g+=(255-g)*f; b+=(255-b)*f; } else { r*=1+f; g*=1+f; b*=1+f; }
+  return `rgb(${r|0},${g|0},${b|0})`; }
+function wobble(ctx, cx, cy, rx, ry, rand, amp, steps){
+  const ph=[rand()*6.28,rand()*6.28,rand()*6.28]; steps=steps||90; ctx.beginPath();
+  for(let i=0;i<=steps;i++){ const t=i/steps*6.2832; const k=1+amp*(Math.sin(3*t+ph[0])*.5+Math.sin(5*t+ph[1])*.3+Math.sin(9*t+ph[2])*.2);
+    const X=cx+rx*k*Math.cos(t), Y=cy+ry*k*Math.sin(t); i?ctx.lineTo(X,Y):ctx.moveTo(X,Y); }
+  ctx.closePath();
+}
+function brushFill(ctx, base, rand, x0, y0, w, h, n, len, width, horiz){
+  ctx.save(); ctx.lineCap="round";
+  for(let i=0;i<n;i++){
+    const x=x0+rand()*w, y=y0+rand()*h, a=(horiz?0:rand()*3.14)+(rand()-.5)*.6, l=len*(.5+rand());
+    ctx.strokeStyle=shade(base,(rand()-.5)*.22); ctx.globalAlpha=.35+rand()*.35; ctx.lineWidth=width*(.6+rand()*.8);
+    ctx.beginPath(); ctx.moveTo(x-Math.cos(a)*l/2,y-Math.sin(a)*l/2);
+    ctx.quadraticCurveTo(x+(rand()-.5)*l*.3,y+(rand()-.5)*l*.3,x+Math.cos(a)*l/2,y+Math.sin(a)*l/2); ctx.stroke();
+  }
+  ctx.restore();
+}
+function spiral(ctx, x, y, r, rand, color, lw){
+  ctx.save(); ctx.strokeStyle=color; ctx.lineWidth=lw; ctx.lineCap="round"; ctx.beginPath();
+  const turns=1.6+rand()*.8, dir=rand()<.5?1:-1, a0=rand()*6.28;
+  for(let i=0;i<=28;i++){ const t=i/28; const a=a0+dir*t*turns*6.28; const rr=r*t; const X=x+Math.cos(a)*rr, Y=y+Math.sin(a)*rr; i?ctx.lineTo(X,Y):ctx.moveTo(X,Y); }
+  ctx.stroke(); ctx.restore();
+}
+
+/* wall tile: red with white swirls */
+let wallTileUrl = "";
+function wallTile(){
+  if(wallTileUrl) return wallTileUrl;
+  const S=260, dpr=2, c=document.createElement("canvas"); c.width=S*dpr; c.height=S*dpr; const x=c.getContext("2d"); x.scale(dpr,dpr);
+  const rand=rnd(42); x.fillStyle=PAINT.wall; x.fillRect(0,0,S,S);
+  x.lineCap="round";
+  for(let i=0;i<160;i++){ const px=rand()*S, py=rand()*S, l=6+rand()*18, a=rand()*6.28;
+    x.strokeStyle=`rgba(${rand()<.5?"255,255,255":"170,150,120"},${.05+rand()*.06})`; x.lineWidth=.5+rand()*.5;
+    for(const dx of [-S,0,S]) for(const dy of [-S,0,S]){ x.beginPath(); x.moveTo(px+dx,py+dy); x.quadraticCurveTo(px+dx+Math.cos(a+.6)*l/2,py+dy+Math.sin(a+.6)*l/2,px+dx+Math.cos(a)*l,py+dy+Math.sin(a)*l); x.stroke(); } }
+  wallTileUrl = c.toDataURL("image/png"); return wallTileUrl;
+}
+
+/* scene: floor, oval table, decor. Units of W (scene width). */
+const SLOTS = [[.5,.29],[.25,.48],[.75,.48],[.22,.86],[.78,.86],[.35,1.13],[.65,1.13]];
+const CENTER = [.5,.67];
+const TABLE = {cx:.5, cy:.71, rx:.475, ry:.62};
+const SCENE_H = 1.40; // in W, plus FLOOR_PX
+const FLOOR_PX = 150;
+let sceneCache = {w:0, url:""};
+function tableShape(x, cx, cy, rx, ry){
+  const rand=rnd(21), ph=[rand()*6.28,rand()*6.28,rand()*6.28,rand()*6.28]; x.beginPath();
+  for(let i=0;i<=160;i++){ const t=i/160*6.2832;
+    const k=1+.055*Math.sin(2*t+ph[0])+.04*Math.sin(3*t+ph[1])+.025*Math.sin(5*t+ph[2])+.008*Math.sin(11*t+ph[3]);
+    const X=cx+rx*k*Math.cos(t), Y=cy+ry*k*Math.sin(t); i?x.lineTo(X,Y):x.moveTo(X,Y); }
+  x.closePath();
+}
+function drawScene(W){
+  const dpr=Math.min(2, window.devicePixelRatio||1), H=Math.round(W*SCENE_H+FLOOR_PX);
+  const c=document.createElement("canvas"); c.width=Math.round(W*1.25*dpr); c.height=Math.round(H*dpr); const x=c.getContext("2d"); x.scale(dpr,dpr); x.translate(W*.125,0);
+  const rand=rnd(7), u=W;
+  const cx=TABLE.cx*u, cy=TABLE.cy*u, rx=TABLE.rx*u*.96, ry=TABLE.ry*u*.97;
+  x.lineCap="round";
+  // chairs peeking out from under the table
+  const chair=(ang, seed)=>{
+    const r=rnd(seed), ex=cx+Math.cos(ang)*rx*.92, ey=cy+Math.sin(ang)*ry*.92, sr=u*.13;
+    // backrest arc (outside)
+    x.save(); x.translate(ex,ey); x.rotate(ang+Math.PI/2);
+    x.strokeStyle="#8A5434"; x.lineWidth=u*.024; x.beginPath(); x.arc(0, u*.03, sr*1.22, Math.PI*1.22, Math.PI*1.78); x.stroke();
+    x.strokeStyle="rgba(255,220,180,.25)"; x.lineWidth=u*.008; x.beginPath(); x.arc(0, u*.03, sr*1.22, Math.PI*1.27, Math.PI*1.73); x.stroke();
+    // seat
+    x.strokeStyle="#8A5434"; x.lineWidth=u*.016; [-.62,.62].forEach(k=>{ x.beginPath(); x.moveTo(sr*k, u*.035-sr*.55); x.lineTo(sr*k*1.12, u*.03-sr*1.1); x.stroke(); });
+    x.fillStyle="rgba(60,30,20,.22)"; x.beginPath(); x.ellipse(2, u*.035+3, sr, sr*.9, 0, 0, 6.283); x.fill();
+    x.fillStyle="#B88A62"; x.beginPath(); x.ellipse(0, u*.035, sr, sr*.9, 0, 0, 6.283); x.fill();
+    x.save(); x.beginPath(); x.ellipse(0, u*.035, sr, sr*.9, 0, 0, 6.283); x.clip();
+    for(let i=0;i<14;i++){ x.strokeStyle=r()<.5?"rgba(110,70,40,.45)":"rgba(240,210,170,.35)"; x.lineWidth=1+r()*2.4;
+      const yy=-sr+u*.035+r()*sr*2; x.beginPath(); x.moveTo(-sr,yy); x.quadraticCurveTo(0,yy+(r()-.5)*10,sr,yy+(r()-.5)*6); x.stroke(); }
+    x.restore();
+    x.strokeStyle="rgba(110,65,38,.55)"; x.lineWidth=1.2; x.beginPath(); x.ellipse(0, u*.035, sr, sr*.9, 0, 0, 6.283); x.stroke();
+    x.restore();
+  };
+  chair(Math.PI, 11); chair(0, 13);
+  // table shadow
+  x.save(); x.filter="blur(10px)"; x.fillStyle="rgba(60,30,20,.25)"; x.beginPath(); x.ellipse(cx+4, cy+10, rx, ry, 0, 0, 6.283); x.fill(); x.restore();
+  // gouache table top
+  x.save(); x.beginPath(); x.ellipse(cx, cy, rx, ry, 0, 0, 6.283); x.fillStyle="#7A3824"; x.fill(); x.clip();
+  // sweeping circular strokes following the shape
+  for(let i=0;i<110;i++){
+    const k=.15+Math.sqrt(rand())*.95, a0=rand()*6.283, span=.8+rand()*1.8;
+    const tone=rand(); x.strokeStyle = tone<.45 ? `rgba(150,72,46,${.08+rand()*.14})` : tone<.85 ? `rgba(70,26,14,${.08+rand()*.14})` : `rgba(195,120,85,${.06+rand()*.08})`;
+    x.lineWidth = u*(.04+rand()*.09);
+    x.beginPath(); x.ellipse(cx, cy, rx*k, ry*k, 0, a0, a0+span); x.stroke();
+  }
+  // dry-brush flecks
+  for(let i=0;i<160;i++){ const a=rand()*6.283, k=Math.sqrt(rand()); const X=cx+Math.cos(a)*rx*k, Y=cy+Math.sin(a)*ry*k;
+    x.strokeStyle=`rgba(${rand()<.5?"200,130,95":"50,18,10"},${.05+rand()*.07})`; x.lineWidth=.8+rand()*1.5;
+    const t=a+Math.PI/2; x.beginPath(); x.moveTo(X,Y); x.lineTo(X+Math.cos(t)*(6+rand()*16), Y+Math.sin(t)*(6+rand()*16)); x.stroke(); }
+  // soft window light across the table
+  x.save(); x.translate(cx,cy); x.rotate(-.5);
+  const lg=x.createLinearGradient(-rx*.2,0,rx*.35,0); lg.addColorStop(0,"rgba(255,230,200,0)"); lg.addColorStop(.5,"rgba(255,230,200,.10)"); lg.addColorStop(1,"rgba(255,230,200,0)");
+  x.fillStyle=lg; x.fillRect(-rx*.2,-ry*1.5,rx*.55,ry*3); x.restore();
+  x.restore();
+  // chopsticks on rests + one teacup
+  const sticks=(X,Y,a)=>{ x.save(); x.translate(X,Y); x.rotate(a); x.lineCap="round";
+    x.fillStyle="rgba(0,0,0,.25)"; x.beginPath(); x.ellipse(2,u*.006,4,u*.09,0,0,6.283); x.fill();
+    [-3.2,3.2].forEach(o=>{ x.strokeStyle="#E9DCC6"; x.lineWidth=2.6; x.beginPath(); x.moveTo(o,-u*.09); x.lineTo(o*.55,u*.085); x.stroke();
+      x.strokeStyle=PAINT.ink; x.lineWidth=2.6; x.beginPath(); x.moveTo(o,-u*.09); x.lineTo(o*.92,-u*.06); x.stroke(); });
+    x.fillStyle=PAINT.glaze; x.beginPath(); x.ellipse(0,u*.045,7,3.2,0,0,6.283); x.fill(); x.restore(); };
+  sticks(.085*u,.68*u,-.05); sticks(.915*u,.68*u,.05);
+  const tx=.80*u, ty=.25*u;
+  x.fillStyle="rgba(0,0,0,.25)"; x.beginPath(); x.ellipse(tx+2,ty+3,15,15,0,0,6.283); x.fill();
+  x.fillStyle=PAINT.glaze; x.beginPath(); x.arc(tx,ty,15,0,6.283); x.fill();
+  x.fillStyle="#B9C48F"; x.beginPath(); x.arc(tx,ty,11,0,6.283); x.fill();
+  x.strokeStyle=PAINT.iron; x.lineWidth=1.4; x.beginPath(); x.arc(tx,ty,14.3,0,6.283); x.stroke();
+  // little sauce dishes
+  const sauce=(X,Y,R,fill,seed)=>{ const rr=rnd(seed);
+    x.fillStyle="rgba(40,15,8,.28)"; x.beginPath(); x.arc(X+1.5,Y+2.5,R,0,6.283); x.fill();
+    x.fillStyle=PAINT.cream; wobble(x,X,Y,R,R,rr,.03,40); x.fill();
+    x.strokeStyle=PAINT.indigoSoft; x.lineWidth=1; x.beginPath(); x.arc(X,Y,R*.86,0,6.283); x.stroke();
+    x.fillStyle=fill; wobble(x,X,Y+.5,R*.62,R*.6,rr,.06,30); x.fill();
+    x.fillStyle="rgba(255,255,255,.45)"; x.beginPath(); x.ellipse(X-R*.22,Y-R*.2,R*.16,R*.08,-.6,0,6.283); x.fill(); };
+  sauce(.5*u,.475*u,u*.038,"#3B1F14",61);   // soy
+  sauce(.845*u,1.045*u,u*.032,"#C0442B",62); // chili
+  // tea set in the middle: black tray, white teapot, one cup
+  x.save(); x.translate(.5*u,.905*u); x.rotate(-.08);
+  const tw=u*.2, th=u*.13;
+  x.fillStyle="rgba(30,10,5,.3)"; x.beginPath(); x.roundRect(-tw/2+2,-th/2+3,tw,th,8); x.fill();
+  x.fillStyle="#1F1A18"; x.beginPath(); x.roundRect(-tw/2,-th/2,tw,th,8); x.fill();
+  x.save(); x.beginPath(); x.roundRect(-tw/2,-th/2,tw,th,8); x.clip(); brushFill(x,"#2A2422",rnd(70),-tw/2,-th/2,tw,th,40,u*.05,u*.012,true); x.restore();
+  // teapot
+  const px=-tw*.12, pr=u*.042;
+  x.fillStyle="#F3EEE6"; x.beginPath(); x.moveTo(px+pr*.7,-pr*.15); x.quadraticCurveTo(px+pr*1.9,-pr*.35,px+pr*2.05,-pr*.55); x.lineTo(px+pr*1.75,pr*.05); x.quadraticCurveTo(px+pr*1.2,pr*.25,px+pr*.7,pr*.25); x.closePath(); x.fill();
+  x.beginPath(); x.arc(px,0,pr,0,6.283); x.fill();
+  x.strokeStyle="#C9A66B"; x.lineWidth=1.3; x.beginPath(); x.arc(px,0,pr*.62,0,6.283); x.stroke();
+  x.fillStyle="#E4DCCF"; x.beginPath(); x.arc(px,0,pr*.2,0,6.283); x.fill();
+  // cup
+  const qx=tw*.28, qr=u*.024;
+  x.fillStyle="#F3EEE6"; x.beginPath(); x.arc(qx,th*.12,qr,0,6.283); x.fill();
+  x.fillStyle="#B8746A"; x.beginPath(); x.arc(qx,th*.12,qr*.72,0,6.283); x.fill();
+  x.restore();
+  return c.toDataURL("image/png");
+}
+function ensureScene(){
+  const sc=document.querySelector(".scene"); if(!sc) return;
+  const W=Math.round(sc.clientWidth); if(!W) return;
+  if(sceneCache.w!==W){ sceneCache={w:W, url:drawScene(W)}; }
+  const img=sc.querySelector(".scene-bg"); if(img && img.src!==sceneCache.url) img.src=sceneCache.url;
+}
+window.addEventListener("resize", ()=>{ clearTimeout(window.__rs); window.__rs=setTimeout(()=>{ if(state.tab==="cost") ensureScene(); },150); });
+
+/* ---------- gouache plate stickers ---------- */
+const FOLK = [[214,160,96],[232,196,128],[244,232,208],[150,170,110],[86,112,74],[140,96,62],[86,58,40],[196,92,62],[170,166,160],[220,178,120],[250,242,226],[60,48,40]];
+const RIMS = ["indigo","lines","speckle","iron","celadon"];
+function drawPlate(f, S, rand, rim){
+  const cx=S/2, cy=S/2, R=S*.45;
+  const body = rim==="speckle" ? PAINT.glaze : rim==="celadon" ? "#DCE3D6" : PAINT.cream;
+  f.save(); f.shadowColor="rgba(40,25,15,.32)"; f.shadowBlur=S*.035; f.shadowOffsetY=S*.02;
+  wobble(f,cx,cy,R,R,rand,.006,100); f.fillStyle=body; f.fill(); f.restore();
+  f.save(); wobble(f,cx,cy,R,R,rnd(9),.006,100); f.clip();
+  const g=f.createRadialGradient(cx-R*.3,cy-R*.35,R*.1,cx,cy,R); g.addColorStop(0,"rgba(255,255,255,.35)"); g.addColorStop(1,"rgba(120,100,80,.10)"); f.fillStyle=g; f.fillRect(cx-R,cy-R,2*R,2*R);
+  if(rim==="speckle"){ for(let i=0;i<140;i++){ const a=rand()*6.28, d=Math.sqrt(rand())*R; f.fillStyle=`rgba(110,80,55,${.25+rand()*.4})`; f.beginPath(); f.arc(cx+Math.cos(a)*d,cy+Math.sin(a)*d,S*(.002+rand()*.004),0,6.283); f.fill(); } }
+  f.restore();
+  if(rim==="indigo"){ f.strokeStyle=PAINT.indigo; f.lineWidth=R*.10; f.globalAlpha=.92; wobble(f,cx,cy,R*.93,R*.93,rand,.006,90); f.stroke(); f.globalAlpha=1; }
+  if(rim==="lines"){ f.strokeStyle=PAINT.indigoSoft; f.lineWidth=S*.007; [.92,.85].forEach(k=>{ f.beginPath(); f.arc(cx,cy,R*k,0,6.283); f.stroke(); }); }
+  if(rim==="iron"){ f.strokeStyle=PAINT.iron; f.lineWidth=R*.05; wobble(f,cx,cy,R*.975,R*.975,rand,.01,90); f.stroke(); }
+  if(rim==="celadon"){ f.strokeStyle="rgba(110,130,105,.6)"; f.lineWidth=S*.005; f.beginPath(); f.arc(cx,cy,R*.8,0,6.283); f.stroke(); }
+  return {cx,cy,R, inner: R*.76};
+}
+function plateUrl(seed, mark){
+  const S=300, c=document.createElement("canvas"); c.width=S; c.height=S; const f=c.getContext("2d");
+  const rand=rnd(seed); const rim=RIMS[seed%RIMS.length];
+  const p=drawPlate(f,S,rand,rim);
+  if(mark==="+"){ f.strokeStyle=PAINT.indigo; f.globalAlpha=.85; f.lineCap="round"; f.lineWidth=S*.022;
+    f.beginPath(); f.moveTo(p.cx-S*.003,p.cy-S*.12); f.quadraticCurveTo(p.cx+S*.01,p.cy,p.cx+S*.004,p.cy+S*.12); f.stroke();
+    f.beginPath(); f.moveTo(p.cx-S*.12,p.cy+S*.004); f.quadraticCurveTo(p.cx,p.cy-S*.012,p.cx+S*.12,p.cy); f.stroke(); }
+  else if(mark){ f.fillStyle=PAINT.ink; f.globalAlpha=.55; f.font=`500 ${Math.round(S*.17)}px "Noto Serif SC","Courier Prime",serif`; f.textAlign="center"; f.textBaseline="middle"; f.fillText(mark,p.cx,p.cy+S*.01); }
+  return c.toDataURL("image/png");
+}
+const plateCache = {};
+function cachedPlate(seed, mark){ const k=seed+"|"+mark; return plateCache[k] || (plateCache[k]=plateUrl(seed, mark)); }
+
+/* pixel-art sticker: chunky pixels, small palette, dark outline, white sticker edge */
+async function makeSticker(src, size, seed){
+  const im = await loadImg(src);
+  const M = 40, B = 3, G = M + B*2, cell = 8, K = 10, rand = rnd(seed || 7);
+  const c = document.createElement("canvas"); c.width = M; c.height = M; const x = c.getContext("2d");
+  x.imageSmoothingEnabled = true; x.imageSmoothingQuality = "high";
+  const side = Math.min(im.width, im.height);
+  x.drawImage(im, (im.width-side)/2, (im.height-side)/2, side, side, 0, 0, M, M);
+  const d = x.getImageData(0,0,M,M).data, px = [];
+  for(let i=0;i<d.length;i+=4){ let r=d[i],g=d[i+1],b=d[i+2]; const l=(r+g+b)/3;
+    r=l+(r-l)*1.3; g=l+(g-l)*1.3; b=l+(b-l)*1.3;               // a bit more colour
+    r=(r-128)*1.12+128; g=(g-128)*1.12+128; b=(b-128)*1.12+128;  // a bit more contrast
+    px.push([Math.max(0,Math.min(255,r)),Math.max(0,Math.min(255,g)),Math.max(0,Math.min(255,b))]); }
+  // small palette (k-means)
+  let cent = []; for(let k=0;k<K;k++) cent.push(px[Math.floor(rand()*px.length)].slice());
+  const near = p=>{ let bi=0,bd=1e12; for(let k=0;k<K;k++){ const q=cent[k]; const dd=(p[0]-q[0])**2+(p[1]-q[1])**2+(p[2]-q[2])**2; if(dd<bd){bd=dd;bi=k;} } return bi; };
+  for(let it=0; it<12; it++){ const sum=cent.map(()=>[0,0,0,0]); px.forEach(p=>{ const k=near(p), t=sum[k]; t[0]+=p[0];t[1]+=p[1];t[2]+=p[2];t[3]++; });
+    cent = cent.map((q,k)=> sum[k][3] ? [sum[k][0]/sum[k][3],sum[k][1]/sum[k][3],sum[k][2]/sum[k][3]] : px[Math.floor(rand()*px.length)].slice()); }
+  let lab = px.map(near);
+  // tidy stray single pixels
+  const nl = lab.slice();
+  for(let y=1;y<M-1;y++) for(let xx=1;xx<M-1;xx++){ const cnt={}; for(let dy=-1;dy<=1;dy++) for(let dx=-1;dx<=1;dx++){ const k=lab[(y+dy)*M+xx+dx]; cnt[k]=(cnt[k]||0)+1; }
+    const me=lab[y*M+xx]; if(cnt[me]<=2){ let bk=me,bc=0; for(const k in cnt) if(cnt[k]>bc){bc=cnt[k];bk=+k;} nl[y*M+xx]=bk; } }
+  lab = nl;
+  // pixel circle + outline + white sticker edge, on the G×G grid
+  const cxg = G/2, R = M/2 - .3;
+  const at = (gx,gy)=>Math.hypot(gx+.5-cxg, gy+.5-cxg);
+  const inFood = (gx,gy)=> at(gx,gy) <= R;
+  const dark = cent.reduce((a,q)=> (q[0]+q[1]+q[2] < a[0]+a[1]+a[2]) ? q : a, [255,255,255]).map(v=>v*.55);
+  const outline = `rgb(${Math.min(60,dark[0])|0},${Math.min(45,dark[1])|0},${Math.min(38,dark[2])|0})`;
+  const out = document.createElement("canvas"); out.width = G*cell; out.height = G*cell; const o = out.getContext("2d");
+  o.imageSmoothingEnabled = false;
+  for(let gy=0; gy<G; gy++) for(let gx=0; gx<G; gx++){
+    let col = null;
+    if(inFood(gx,gy)){ const q = cent[lab[(gy-B)*M + (gx-B)]]; col = `rgb(${q[0]|0},${q[1]|0},${q[2]|0})`; }
+    else {
+      let nearFood = false; for(let dy=-1;dy<=1 && !nearFood;dy++) for(let dx=-1;dx<=1;dx++){ if(inFood(gx+dx,gy+dy)){ nearFood = true; break; } }
+      if(nearFood) col = outline;
+      else if(at(gx,gy) <= R + 2.6) col = "#FBF8F1";
+    }
+    if(col){ o.fillStyle = col; o.fillRect(gx*cell, gy*cell, cell, cell); }
+  }
+  // little shine in the top-left, like a glossy sticker
+  o.fillStyle = "rgba(255,255,255,.75)";
+  [[B+9,B+7],[B+8,B+8],[B+7,B+9],[B+10,B+6]].forEach(([gx,gy])=>{ if(inFood(gx,gy)) o.fillRect(gx*cell, gy*cell, cell, cell); });
+  // drop shadow pixels under the sticker edge
+  const sh = document.createElement("canvas"); sh.width = out.width + cell; sh.height = out.height + cell*2; const s2 = sh.getContext("2d");
+  s2.imageSmoothingEnabled = false; s2.globalAlpha = .18; s2.drawImage(out, cell*.5, cell*1.5); s2.globalCompositeOperation = "source-in"; s2.fillStyle = "#2E2520"; s2.fillRect(0,0,sh.width,sh.height);
+  s2.globalCompositeOperation = "source-over"; s2.globalAlpha = 1; s2.drawImage(out, 0, 0);
+  return sh.toDataURL("image/png");
+}
+/* ---------- export: order-slip style cost sheet ---------- */
+const SLIP = { paper:"#F4F1EA", red:"#D4574B", blue:"#3A4C9E", pen:"#1F2C86" };
+const HAND = '"Caveat","Long Cang",cursive';
+const PRINT = '"Noto Serif SC","Songti SC",serif';
+async function slipFonts(text){
+  try{ await Promise.all([
+    document.fonts.load(`500 40px "Caveat"`, "0123456789RM.,/abc"),
+    document.fonts.load(`40px "Long Cang"`, text),
+    document.fonts.load(`700 40px "Noto Serif SC"`, text),
+    document.fonts.load(`700 30px "Courier Prime"`, "No0123456789") ]); }catch(e){}
+}
+function handText(x, str, X, Y, size, opts){
+  opts = opts || {}; const r = rnd(hash(str) + (opts.seed||0));
+  x.save(); x.fillStyle = opts.color || SLIP.pen; x.font = `500 ${size}px ${HAND}`; x.textBaseline = "alphabetic";
+  let cx = X; const chars = [...String(str)];
+  if(opts.align==="right"){ let w=0; chars.forEach(c=>w+=x.measureText(c).width*1.02); cx = X - w; }
+  if(opts.align==="center"){ let w=0; chars.forEach(c=>w+=x.measureText(c).width*1.02); cx = X - w/2; }
+  chars.forEach(c=>{ const w = x.measureText(c).width;
+    x.save(); x.translate(cx + w/2, Y + (r()-.5)*size*.08); x.rotate((r()-.5)*.09 + (opts.tilt||0)); x.globalAlpha = .82 + r()*.18;
+    x.fillText(c, -w/2, 0); x.restore(); cx += w*1.02; });
+  x.restore();
+}
+function printText(x, str, X, Y, size, color, opts){
+  opts = opts||{}; x.save(); x.fillStyle = color; x.font = `${opts.weight||600} ${size}px ${opts.font||PRINT}`;
+  x.textAlign = opts.align || "left"; x.textBaseline = opts.base || "alphabetic";
+  if(opts.spacing){ try{ x.letterSpacing = opts.spacing+"px"; }catch(e){} }
+  x.fillText(str, X, Y); x.restore();
+}
+function vText(x, str, X, Y, size, color, font, gap){
+  x.save(); x.fillStyle=color; x.font=`600 ${size}px ${font||PRINT}`; x.textAlign="center"; x.textBaseline="top";
+  [...str].forEach((c,i)=>x.fillText(c, X, Y + i*(size*(gap||1.15)))); x.restore();
+}
+function slipLine(x, x1, y1, x2, y2, color, w){ x.strokeStyle=color; x.lineWidth=w||2; x.beginPath(); x.moveTo(x1,y1); x.lineTo(x2,y2); x.stroke(); }
+function slipStamp(x, X, Y, R, label, sub){
+  x.save(); x.translate(X,Y); x.rotate(-.18); x.globalAlpha=.78;
+  x.strokeStyle=SLIP.red; x.fillStyle=SLIP.red;
+  x.lineWidth=5; x.beginPath(); x.arc(0,0,R,0,6.283); x.stroke();
+  x.lineWidth=2; x.beginPath(); x.arc(0,0,R-10,0,6.283); x.stroke();
+  x.font=`700 ${R*.42}px ${PRINT}`; x.textAlign="center"; x.textBaseline="middle"; x.fillText(label,0,-R*.06);
+  x.font=`700 ${R*.17}px "Courier Prime",monospace`; x.fillText(sub,0,R*.42);
+  // worn ink
+  x.globalCompositeOperation="destination-out"; const r=rnd(99);
+  for(let i=0;i<140;i++){ x.globalAlpha=.25+r()*.5; x.beginPath(); x.arc((r()-.5)*R*2,(r()-.5)*R*2,1+r()*2.4,0,6.283); x.fill(); }
+  x.restore();
+}
+async function renderSlip(d){
+  const W=1080, H=1620, c=document.createElement("canvas"); c.width=W; c.height=H; const x=c.getContext("2d");
+  const kz = userName(), ke = userName();
+  const kitchen = kitchenTitle();
+  const kitchenEn = ke ? `${possessive(ke).toUpperCase()} KITCHEN` : "MY KITCHEN";
+  const lines = (d.lines||[]).map(l=>{ const ing=state.items.find(i=>i.id===l.ingId); return ing ? {ing, l, cost:lineCost(l)} : null; }).filter(Boolean);
+  const t = dishTotals(d);
+  const serial = String(hash(d.id) % 10000).padStart(4,"0");
+  const now = new Date();
+  await slipFonts(kitchen + (d.name||"") + lines.map(o=>ingName(o.ing)).join("") + "成本记录卡年月日厨房菜名售价品名用量单价金额合计成本率毛利第一联经手人已核算个" + (kz||""));
+  // paper
+  x.fillStyle=SLIP.paper; x.fillRect(0,0,W,H);
+  const L0=70, R0=990;
+  // misregistered print layer helper
+  const red=SLIP.red, blue=SLIP.blue;
+  // top line
+  printText(x, "No.", L0, 92, 26, red, {font:'"Courier Prime",monospace', weight:700});
+  printText(x, serial, L0+62, 92, 34, red, {font:'"Courier Prime",monospace', weight:700});
+  printText(x, L("成 本 记 录 卡","COST  RECORD  CARD"), W/2, 90, 26, red, {align:"center", spacing:2});
+  if(LANG==="en"){ printText(x, "DATE", R0-210, 90, 22, red, {font:'"Courier Prime",monospace', weight:700}); handText(x, `${now.getDate()} / ${now.getMonth()+1} / ${now.getFullYear()}`, R0, 92, 40, {align:"right"}); }
+  else {
+    [[String(now.getFullYear()),"年",R0-232],[String(now.getMonth()+1),"月",R0-128],[String(now.getDate()),"日",R0-24]].forEach(([v,k,px])=>{
+      handText(x, v, px-8, 94, 40, {align:"right"}); printText(x, k, px, 90, 24, red); }); }
+  // info boxes
+  const bY=118, bH=78; x.strokeStyle=red; x.lineWidth=2.5; x.strokeRect(L0,bY,R0-L0,bH);
+  const cols=[L0, L0+300, L0+700, R0];
+  [1,2].forEach(i=>slipLine(x,cols[i],bY,cols[i],bY+bH,red,2));
+  const lab3 = LANG==="en" ? ["KITCHEN","DISH","PRICE"] : ["厨房","菜名","售价"];
+  lab3.forEach((s,i)=>{ const lx=cols[i]+12; if(LANG==="en") printText(x,s,lx,bY+26,16,red,{font:'"Courier Prime",monospace',weight:700}); else vText(x,s,lx+10,bY+12,20,red,PRINT,1.25); });
+  handText(x, kz||ke||"—", cols[0]+(LANG==="en"?20:48), bY+62, 40);
+  handText(x, d.name||"", cols[1]+(LANG==="en"?20:48), bY+62, 40);
+  handText(x, isFinite(t.sell)&&t.sell>0 ? `RM ${t.sell.toFixed(2)}` : "—", cols[2]+(LANG==="en"?20:48), bY+62, 40);
+  // title block
+  printText(x, kitchen, W/2, 300, 70, blue, {align:"center", weight:700, spacing:LANG==="en"?2:14});
+  printText(x, LANG==="en" ? "INGREDIENT COST SHEET" : kitchenEn, W/2, 352, 30, blue, {align:"center", weight:700, font:'"Courier Prime",monospace', spacing:4});
+  slipLine(x, L0, 378, R0, 378, blue, 3); slipLine(x, L0, 386, R0, 386, blue, 1.2);
+  // table
+  const tY=420, hH=62, rH=60, rows=13, tB=tY+hH+rows*rH;
+  const tc=[L0, L0+400, L0+560, L0+770, R0];
+  x.strokeStyle=red; x.lineWidth=2.5; x.strokeRect(L0,tY,R0-L0,tB-tY);
+  for(let i=1;i<4;i++) slipLine(x,tc[i],tY,tc[i],tB,red,2);
+  slipLine(x,L0,tY+hH,R0,tY+hH,red,2.5);
+  for(let i=1;i<rows;i++) slipLine(x,L0,tY+hH+i*rH,R0,tY+hH+i*rH,red,1.4);
+  const heads = LANG==="en" ? ["ITEM","USED","BOUGHT AT","COST"] : ["品  名","用  量","单  价","金  额"];
+  heads.forEach((h,i)=>printText(x,h,(tc[i]+tc[i+1])/2,tY+42,LANG==="en"?20:26,red,{align:"center",font:LANG==="en"?'"Courier Prime",monospace':PRINT,weight:700}));
+  lines.slice(0,rows).forEach((o,i)=>{
+    const y=tY+hH+i*rH+44, l=o.l, ing=o.ing;
+    const u = uLabel(l.unit||ing.unit), pu = uLabel(ing.unit);
+    handText(x, ingName(ing), tc[0]+18, y, 40, {seed:i});
+    handText(x, `${l.amount}${u}`, tc[2]-16, y, 40, {align:"right", seed:i+20});
+    handText(x, `${ing.price}/${ing.qty}${pu}`, tc[3]-14, y, 34, {align:"right", seed:i+40});
+    handText(x, isFinite(o.cost) ? o.cost.toFixed(2) : "—", tc[4]-18, y, 40, {align:"right", seed:i+60});
+  });
+  // pasted sticker in the empty rows
+  const empty = rows - Math.min(rows, lines.length);
+  if(d.sticker && empty >= 4){
+    try{ const im = await loadImg(d.sticker); const sz = Math.min(empty*rH - 30, 420);
+      const px = (L0+R0)/2 + 40, py = tY+hH+(rows-empty)*rH + empty*rH/2;
+      x.save(); x.translate(px,py); x.rotate(-.05);
+      x.shadowColor="rgba(0,0,0,.18)"; x.shadowBlur=10; x.shadowOffsetY=4;
+      const pl = await loadImg(decoPlate(plateStyleOf(d))); x.drawImage(pl,-sz/2,-sz/2,sz,sz); x.shadowColor="transparent";
+      const pr = sz*PLATE_INNER/2; x.beginPath(); x.arc(0,0,pr,0,6.283); x.clip(); x.drawImage(im,-pr,-pr,pr*2,pr*2); x.restore();
+      // tape
+      [[-sz*.32,-sz*.44,-.5],[sz*.32,sz*.42,-.5]].forEach(([tx,ty,a])=>{ x.save(); x.translate(px+tx,py+ty); x.rotate(a); x.fillStyle="rgba(235,225,200,.75)"; x.fillRect(-46,-14,92,28); x.restore(); });
+    }catch(e){}
+  }
+  // totals
+  const fY=tB+70;
+  printText(x, L("合计","TOTAL"), L0+6, fY, LANG==="en"?24:30, red, {weight:700, font:LANG==="en"?'"Courier Prime",monospace':PRINT});
+  printText(x, "RM", L0+130, fY, 26, red, {weight:700, font:'"Courier Prime",monospace'});
+  handText(x, t.total.toFixed(2), L0+190, fY+6, 64);
+  slipLine(x, L0+120, fY+16, L0+470, fY+16, red, 1.6);
+  if(isFinite(t.pct)){
+    printText(x, L("成本率","FOOD COST"), L0+540, fY, LANG==="en"?20:26, red, {weight:700, font:LANG==="en"?'"Courier Prime",monospace':PRINT});
+    handText(x, `${t.pct.toFixed(1)}%`, L0+(LANG==="en"?690:660), fY+4, 50);
+    printText(x, L("毛利","PROFIT"), L0+540, fY+70, LANG==="en"?20:26, red, {weight:700, font:LANG==="en"?'"Courier Prime",monospace':PRINT});
+    handText(x, `RM ${(t.sell-t.per).toFixed(2)}`, L0+(LANG==="en"?690:660), fY+74, 44);
+  }
+  // footer
+  printText(x, L("经手人：","CHEF: "), L0+6, H-110, 24, red, {weight:700, font:LANG==="en"?'"Courier Prime",monospace':PRINT});
+  handText(x, ke&&LANG==="en" ? ke : (kz||ke||"—"), L0+(LANG==="en"?110:120), H-108, 42);
+  printText(x, kitchenEn, R0, H-110, 20, blue, {align:"right", weight:700, font:'"Courier Prime",monospace', spacing:3});
+  // side vertical print
+  vText(x, L("第一联","COPY1"), R0+42, 470, 22, red, PRINT, 1.2);
+  vText(x, L("厨房","KITCHEN").slice(0,LANG==="en"?7:2), R0+42, 470+22*1.2*(LANG==="en"?5:3)+10, 22, red, PRINT, 1.2);
+  x.save(); x.translate(R0+44, 1060); x.rotate(Math.PI/2);
+  printText(x, "No", 0, 0, 30, red, {weight:700, font:PRINT, base:"middle"});
+  printText(x, String(1530000 + hash(d.id)%9999), 54, 0, 38, "#5C8FC9", {weight:700, font:'"Courier Prime",monospace', base:"middle", spacing:4});
+  x.restore();
+  // stamp
+  slipStamp(x, L0+400, H-130, 70, L("已核算","OK"), "COST");
+  // photocopy grain + speckles
+  const g = x.getImageData(0,0,W,H), r = rnd(5);
+  for(let i=0;i<g.data.length;i+=4){ const n=(r()-.5)*16; g.data[i]+=n; g.data[i+1]+=n; g.data[i+2]+=n; }
+  x.putImageData(g,0,0);
+  x.fillStyle="rgba(40,40,60,.35)"; for(let i=0;i<260;i++){ x.beginPath(); x.arc(r()*W,r()*H,r()*1.4,0,6.283); x.fill(); }
+  return c;
+}
+let slipBlob = null, slipName = "";
+async function exportSheet(d){
+  openSheet(`<h3>${L("成本单","Cost Slip")}</h3><p class="note" id="slip-status">${L("正在生成…","Making the slip…")}</p><img id="slip-img" alt="" style="width:100%;border-radius:6px;box-shadow:0 4px 18px rgba(0,0,0,.15)" hidden>
+    <button class="btn" data-act="slipSave" id="slip-save" hidden>${L("保存图片","Save image")}</button>
+    <button class="btn ghost" data-act="close">${L("关闭","Close")}</button>`);
+  try{
+    const c = await renderSlip(d);
+    const url = c.toDataURL("image/png");
+    slipBlob = await new Promise(res=>c.toBlob(res,"image/png"));
+    slipName = `${(d.name||"dish").replace(/[\\/:*?"<>|]/g,"")}-${L("成本单","cost-slip")}.png`;
+    const img = $("#slip-img"); if(!img) return; img.src = url; img.hidden = false;
+    let dl = null; try{ dl = window.claude && claude.use ? await claude.use("downloads") : null; }catch(e){}
+    window.__dl = dl;
+    $("#slip-status").textContent = (dl || STANDALONE) ? "" : L("长按图片即可保存","Press and hold the image to save it");
+    if(dl || STANDALONE) $("#slip-save").hidden = false;
+  }catch(e){ const s=$("#slip-status"); if(s) s.textContent = L("生成失败，再试一次","Couldn’t make the slip. Try again."); }
+}
+
+/* ---------- round photo crop: drag and zoom the dish into the circle ---------- */
+let crop = null;
+async function runSticker(src){
+  if(stBusy) return;
+  const url = typeof src==="string" ? src : await new Promise(res=>{ const fr=new FileReader(); fr.onload=()=>res(fr.result); fr.readAsDataURL(src); });
+  const im = await loadImg(url).catch(()=>null);
+  if(!im){ toast(L("这张照片读不了，换一张试试","Couldn’t read that photo. Try another.")); return; }
+  crop = {target:draft, im, url, zoom:1, ox:0, oy:0, pts:new Map()};
+  openSheet(`<h3>${L("对准盘子","Fit the plate")}</h3>
+    <p class="note" style="margin:0">${L("拖动照片、两指或下面的滑杆放大，让盘子刚好在圆圈里。","Drag the photo and pinch or use the slider so the plate fills the circle.")}</p>
+    <div class="crop-stage" id="crop-stage"><img id="crop-img" src="${url}" alt="" draggable="false"><svg class="crop-ring" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path d="M0 0H100V100H0Z M50 0A50 50 0 1 0 50 100A50 50 0 1 0 50 0Z" fill="rgba(20,16,14,.6)" fill-rule="evenodd"/><circle cx="50" cy="50" r="49.6" fill="none" stroke="rgba(255,255,255,.9)" stroke-width=".5" stroke-dasharray="1.6 1.2"/></svg></div>
+    <input type="range" id="crop-zoom" min="1" max="4" step="0.01" value="1" aria-label="${L("放大","Zoom")}">
+    <button class="btn" data-act="cropUse">${L("用这张","Use this photo")}</button>
+    <button class="btn ghost" data-act="cropCancel">${L("取消","Cancel")}</button>`);
+  requestAnimationFrame(layoutCrop);
+  const st = $("#crop-stage");
+  st.addEventListener("pointerdown", e=>{ st.setPointerCapture(e.pointerId); crop.pts.set(e.pointerId,{x:e.clientX,y:e.clientY}); crop.start = {ox:crop.ox, oy:crop.oy, zoom:crop.zoom, pts:new Map(crop.pts)}; });
+  st.addEventListener("pointermove", e=>{ if(!crop || !crop.pts.has(e.pointerId)) return; crop.pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    const a=[...crop.start.pts.values()], b=[...crop.pts.values()];
+    if(b.length===1 && a.length>=1){ crop.ox = crop.start.ox + (b[0].x-a[0].x); crop.oy = crop.start.oy + (b[0].y-a[0].y); }
+    else if(b.length>=2 && a.length>=2){ const d0=Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y), d1=Math.hypot(b[0].x-b[1].x,b[0].y-b[1].y); crop.zoom = Math.max(1,Math.min(4, crop.start.zoom*d1/Math.max(1,d0))); $("#crop-zoom").value = crop.zoom; }
+    layoutCrop(); });
+  const end = e=>{ if(!crop) return; crop.pts.delete(e.pointerId); crop.start = {ox:crop.ox, oy:crop.oy, zoom:crop.zoom, pts:new Map(crop.pts)}; };
+  st.addEventListener("pointerup", end); st.addEventListener("pointercancel", end);
+  $("#crop-zoom").addEventListener("input", e=>{ crop.zoom = +e.target.value; layoutCrop(); });
+}
+function cropGeom(){
+  const st=$("#crop-stage"); const S = st ? st.clientWidth : 300; const {im} = crop;
+  const scale = S/Math.min(im.width, im.height)*crop.zoom, w = im.width*scale, h = im.height*scale;
+  const mx = Math.max(0,(w-S)/2), my = Math.max(0,(h-S)/2);
+  crop.ox = Math.max(-mx, Math.min(mx, crop.ox)); crop.oy = Math.max(-my, Math.min(my, crop.oy));
+  return {S, scale, w, h, left:(S-w)/2+crop.ox, top:(S-h)/2+crop.oy};
+}
+function layoutCrop(){ if(!crop) return; const g=cropGeom(), img=$("#crop-img"); if(!img) return;
+  img.style.width=g.w+"px"; img.style.height=g.h+"px"; img.style.left=g.left+"px"; img.style.top=g.top+"px"; }
+function useCrop(){
+  const g = cropGeom(), O = 560, k = O/g.S;
+  const c=document.createElement("canvas"); c.width=O; c.height=O; const x=c.getContext("2d");
+  x.imageSmoothingQuality="high"; x.drawImage(crop.im, g.left*k, g.top*k, g.w*k, g.h*k);
+  const url = c.toDataURL("image/jpeg", .86), target = crop.target; crop = null;
+  target.sticker = url; target.show = "sticker";
+  if(!target.isNew){ const d = state.items.find(x=>x.id===target.id); if(d) put(Object.assign({}, d, {sticker:url, show:"sticker"})); }
+  if(draft===target) keepDraft(); closeSheet(); render();
+}
+async function runStickerFilterUnused(src){
+  if(stBusy || aiCtl) return;
+  const target = draft;
+  stBusy = true; aiMsg = L("正在做贴纸","Making the sticker"); render();
+  await new Promise(r=>setTimeout(r,30));
+  try{
+    let url = "";
+    for(const size of [260, 220, 190, 160]){ url = await makeSticker(src, size, hash(target.id)); if(url.length < 160000) break; }
+    target.sticker = url; target.show = "sticker";
+    if(!target.isNew){ const d = state.items.find(x=>x.id===target.id); if(d) put(Object.assign({}, d, {sticker:url, show:"sticker"})); }
+    aiMsg = L("贴纸好了","Sticker ready");
+  }catch(e){ aiMsg = L("这张照片做不了贴纸，换一张试试","Couldn’t make a sticker from that photo"); }
+  stBusy = false; if(draft===target) keepDraft(); render();
+}
+function photoSource(d){ if(aiBlob && aiBlob.dishId===d.id) return aiBlob.blob; if(d.pendingPhoto) return d.pendingPhoto; const p = !d.isNew && dishPhotos(d.id)[0]; return p ? p.data : null; }
+function dataUrlToBlob(u){ const [h,b]=u.split(","); const bin=atob(b); const a=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) a[i]=bin.charCodeAt(i); return new Blob([a],{type:(h.match(/data:([^;]+)/)||[])[1]||"image/jpeg"}); }
+function cleanSvg(svg){
+  if(typeof svg!=="string") return "";
+  svg = svg.trim(); const a = svg.indexOf("<svg"), b = svg.lastIndexOf("</svg>");
+  if(a<0 || b<0 || svg.length>80000) return "";
+  svg = svg.slice(a, b+6)
+    .replace(/<script[\s\S]*?<\/script>/gi,"").replace(/<foreignObject[\s\S]*?<\/foreignObject>/gi,"")
+    .replace(/\son\w+\s*=\s*("[^"]*"|'[^']*')/gi,"").replace(/(href\s*=\s*["'])\s*(?!#)[^"']*/gi,"$1#");
+  if(!/xmlns=/.test(svg)) svg = svg.replace("<svg",'<svg xmlns="http://www.w3.org/2000/svg"');
+  return svg;
+}
+const UNIT_MAP = {g:"g",gram:"g",grams:"g",kg:"kg",ml:"ml",l:"L",liter:"L",litre:"L",pcs:"pcs",pc:"pcs",piece:"pcs",pieces:"pcs",个:"pcs"};
+function aiPrompt(full){
+  const lang = LANG==="en" ? "English" : "Simplified Chinese";
+  return `You are helping a professional chef log the cost of a dish. The attached photo shows food or a drink he made.
+${full?`1. Identify the dish. Give a short natural name in ${lang}.
+2. List its main ingredients for the batch shown, each with a realistic amount and a unit from: g, kg, ml, L, pcs. Ingredient names in ${lang}. At most 10, skip water and salt.
+3.`:"1."} Draw the dish as ONE SVG illustration in this exact style: a hand-painted gouache sticker, like a modern picture-book illustration of a single object.
+- One object only (the plate, bowl, cup or item as served), centered, filling about 75% of the canvas, slight three-quarter view. No table, no background, no ground shadow, no text, no outline strokes around the whole thing.
+- Flat, slightly wobbly organic shapes: cubic-curve paths with soft irregular edges, never perfect circles or rectangles for the main forms.
+- Warm, muted, earthy palette chosen to match the real food: e.g. terracotta #D9663F, burnt orange #C8552F, mustard #E1A73A, butter #F2D27A, cream #F5ECDA, sage #8FA98A, deep green #2E5A45, chocolate #5A3424, dusty pink #D9958A. No neon, no gradients beyond very soft ones.
+- Painterly details: clusters of small speckle dots in lighter and darker tones over surfaces, a simple hand-drawn motif on vessels (small flowers, dots or stripes), loose short strokes suggesting texture on the food, a lighter highlight shape on one side.
+- viewBox="0 0 400 400", xmlns set, only these elements: svg, defs, g, path, ellipse, circle, rect, polygon, clipPath, linearGradient, radialGradient, stop. No script, no images, no external references, no text. Keep it under 14000 characters.
+Reply with only this JSON: {"dish": string, "ingredients": [{"name": string, "amount": number, "unit": string}], "svg": string}${full?"":` (dish and ingredients may be empty)`}.
+If the photo shows no food or drink, reply {"dish":"","ingredients":[],"svg":""}.`;
+}
+async function runAI(src, full){
+  if(!sampleFn || aiCtl || stBusy) return;
+  const target = draft;
+  const blob = typeof src==="string" ? dataUrlToBlob(src) : src;
+  aiCtl = new AbortController(); aiMsg = L("AI 在看照片","Looking at the photo"); render();
+  try{
+    const res = await sampleFn.json(aiPrompt(full), {images: blob, signal: aiCtl.signal, cache: full ? undefined : false,
+      onText: ()=>{ const el=$("#ai-status"); const m=L("正在画插画","Painting"); if(el && aiMsg!==m){ aiMsg=m; el.textContent=m; } }});
+    const svg = cleanSvg(res && res.svg);
+    if(!svg && !(res && res.dish)){ aiMsg = L("看不出是什么食物，换一张试试","Couldn’t spot any food. Try another photo."); }
+    else {
+      if(svg){ target.art = svg; target.show = "art"; }
+      if(full){
+        if(res.dish && !target.name.trim()) target.name = String(res.dish).slice(0,60);
+        const got = Array.isArray(res.ingredients) ? res.ingredients.slice(0,12) : [];
+        const have = new Set(target.lines.map(l=>l.name.trim()).filter(Boolean));
+        target.lines = target.lines.filter(l=>l.name.trim());
+        got.forEach(g=>{
+          const name = String(g.name||"").trim(); if(!name || have.has(name)) return;
+          const unit = UNIT_MAP[String(g.unit||"").trim().toLowerCase()] || "g";
+          const hit = matchIng(name);
+          const line = hit ? {ingId:hit.id, name, price:hit.price, qty:hit.qty, packUnit:hit.unit, amount:String(g.amount??""), unit}
+                           : {ingId:"", name, price:"", qty:"", packUnit:unit, amount:String(g.amount??""), unit};
+          if(UNITS[line.unit].fam!==UNITS[line.packUnit].fam) line.unit=line.packUnit;
+          target.lines.push(line); have.add(name);
+        });
+        if(!target.lines.length) target.lines.push(blankLine());
+      }
+      aiMsg = full ? L("好了！补上买价和分量就能算成本","Done. Add prices and pack sizes to get the cost.") : L("重画好了","Redrawn");
+      if(!target.isNew){ const d = state.items.find(x=>x.id===target.id); if(d && svg) put(Object.assign({}, d, {art:svg, show:"art"})); }
+    }
+  }catch(e){
+    const c = e && e.code;
+    aiMsg = c==="cancelled" ? "" : c==="not_granted"||c==="sampling_disabled"||c==="images_unavailable" ? L("AI 没有开启，可以在页面的权限里允许","AI isn’t allowed. You can allow it in the page permissions.")
+      : c==="rate_limited" ? L("用得太频繁了，等一下再试","Too many tries. Wait a moment.")
+      : c==="image_rejected" ? L("这张照片用不了，换一张","That photo can’t be used. Try another.")
+      : L("AI 出错了，再试一次","Something went wrong. Try again.");
+    if(c==="not_granted"||c==="sampling_disabled") sampleFn = null;
+  }finally{
+    aiCtl = null;
+    if(draft===target) keepDraft();
+    render();
+  }
+}
+/* ingredient suggestions while typing */
+function ingUsage(){ const m={}; dishes().forEach(d=>(d.lines||[]).forEach(l=>{ m[l.ingId]=(m[l.ingId]||0)+1; })); return m; }
+function suggestFor(ix, q){
+  q = String(q||"").trim().toLowerCase();
+  const used = new Set(draft.lines.filter((l,i)=>i!==ix && l.ingId).map(l=>l.ingId));
+  const cur = draft.lines[ix] && draft.lines[ix].ingId;
+  const use = ingUsage();
+  let list = ings().filter(i=>!used.has(i.id));
+  if(q){
+    list = list.map(i=>{ const names=[ingName(i), i.name, i.nameZh, i.nameEn].filter(Boolean).map(v=>v.toLowerCase());
+      const score = names.some(v=>v===q) ? 0 : names.some(v=>v.startsWith(q)) ? 1 : 9;
+      return {i, score}; }).filter(o=>o.score<9).sort((a,b)=>a.score-b.score || (use[b.i.id]||0)-(use[a.i.id]||0)).map(o=>o.i);
+    if(list.length===1 && cur===list[0].id) list = [];
+  } else list.sort((a,b)=>(use[b.id]||0)-(use[a.id]||0));
+  return list.slice(0,6);
+}
+let sgActive = -1;
+function showSuggest(ix){
+  const box = $("#sg-"+ix), inp = $("#c-name-"+ix); if(!box || !inp || !draft) return;
+  const q = inp.value; sgActive = -1;
+  if(!q.trim()){ hideSuggest(ix); return; }
+  const list = suggestFor(ix, q);
+  if(!list.length){ box.hidden = true; box.innerHTML = ""; inp.setAttribute("aria-expanded","false"); return; }
+  const hl = n => { const k=q.trim(); if(!k) return esc(n); const nl=n.toLowerCase(), kl=k.toLowerCase(); let p = nl.startsWith(kl) ? 0 : nl.indexOf(" "+kl); if(p>0) p+=1; return p<0 ? esc(n) : esc(n.slice(0,p))+"<mark>"+esc(n.slice(p,p+k.length))+"</mark>"+esc(n.slice(p+k.length)); };
+  box.innerHTML = `<div class="sg-head">${q.trim() ? L("以前输入过","Used before") : L("常用食材","Your ingredients")}</div>` +
+    list.map(i=>`<button type="button" role="option" data-act="pickIng" data-ix="${ix}" data-id="${i.id}"><b>${hl(ingName(i))}</b><i>${money(num(i.price))} / ${esc(i.qty)}${uLabel(i.unit)}</i></button>`).join("");
+  box.hidden = false; inp.setAttribute("aria-expanded","true");
+}
+function hideSuggest(ix){ const box=$("#sg-"+ix); if(box){ box.hidden=true; box.innerHTML=""; } const inp=$("#c-name-"+ix); if(inp) inp.setAttribute("aria-expanded","false"); }
+function pickIng(ix, id){
+  const ing = state.items.find(i=>i.id===id); const l = draft.lines[ix]; if(!ing || !l) return;
+  Object.assign(l, {ingId:ing.id, name:ingName(ing), price:ing.price, qty:ing.qty, packUnit:ing.unit, unit: UNITS[l.unit] && UNITS[l.unit].fam===UNITS[ing.unit].fam ? l.unit : ing.unit});
+  keepDraft(); render();
+  const a = $("#c-amt-"+ix); if(a){ a.focus(); }
+}
+document.addEventListener("focusin", e=>{ const t=e.target; if(t && t.id && t.id.startsWith("c-name-")) showSuggest(+t.dataset.ix); });
+document.addEventListener("focusout", e=>{ const t=e.target; if(t && t.id && t.id.startsWith("c-name-")){ const ix=+t.dataset.ix; setTimeout(()=>{ const a=document.activeElement; if(!(a && a.closest && a.closest("#sg-"+ix))) hideSuggest(ix); }, 150); } });
+document.addEventListener("pointerdown", e=>{ if(e.target.closest && e.target.closest(".suggest")) e.preventDefault(); });
+document.addEventListener("keydown", e=>{
+  const t=e.target; if(!(t && t.id && t.id.startsWith("c-name-"))) return;
+  const box=$("#sg-"+t.dataset.ix); if(!box || box.hidden) return; const opts=[...box.querySelectorAll("button")];
+  if(e.key==="ArrowDown"||e.key==="ArrowUp"){ e.preventDefault(); sgActive=(sgActive+(e.key==="ArrowDown"?1:-1)+opts.length)%opts.length; opts.forEach((b,i)=>b.classList.toggle("on",i===sgActive)); }
+  else if(e.key==="Enter" && sgActive>=0){ e.preventDefault(); opts[sgActive].click(); }
+  else if(e.key==="Escape"){ hideSuggest(+t.dataset.ix); }
+});
+function createView(){
+  const d = draft, all = ings();
+  const unitOpt = (list, sel) => list.map(u=>`<option value="${u}" ${u===sel?"selected":""}>${uLabel(u)}</option>`).join("");
+  const lines = d.lines.map((l,ix)=>{
+    const fam = UNITS[l.packUnit].fam; const c = draftLineCost(l);
+    return `<div class="panel line-card">
+      <div class="lc-top"><input id="c-name-${ix}" data-ix="${ix}" data-f="name" value="${esc(l.name)}" role="combobox" aria-autocomplete="list" aria-controls="sg-${ix}" aria-expanded="false" placeholder="${L("食材，例如 鸡蛋","Ingredient, e.g. eggs")}" aria-label="${L("食材名称","Ingredient name")}" autocomplete="off">
+        <button class="x" data-act="rmLine" data-ix="${ix}" aria-label="${L("移除这样食材","Remove ingredient")}">×</button></div>
+      <div class="suggest" id="sg-${ix}" role="listbox" hidden></div>
+      ${l.ingId?`<span class="meta" style="font-size:12px;color:var(--muted)">${L("来自食材库 · 改价钱会一起更新","From your pantry · price changes update it")}</span>`:""}
+      <div class="row two">
+        <label class="field">${lab("Paid","买价 "+CUR,"Paid · "+CUR)}<input id="c-price-${ix}" class="num" data-ix="${ix}" data-f="price" inputmode="decimal" value="${esc(l.price)}" placeholder="30"></label>
+        <label class="field">${lab("Pack","买了多少","Pack size")}<div class="row qty"><input id="c-qty-${ix}" class="num" data-ix="${ix}" data-f="qty" inputmode="decimal" value="${esc(l.qty)}" placeholder="50"><select id="c-pack-${ix}" data-ix="${ix}" data-f="packUnit" aria-label="${L("买的单位","Pack unit")}">${unitOpt(Object.keys(UNITS), l.packUnit)}</select></div></label>
+      </div>
+      <div class="lc-used">
+        <label class="field">${lab("Used","这道菜用了","Used in dish")}<div class="row qty"><input id="c-amt-${ix}" class="num" data-ix="${ix}" data-f="amount" inputmode="decimal" value="${esc(l.amount)}" placeholder="1"><select id="c-unit-${ix}" data-ix="${ix}" data-f="unit" aria-label="${L("用的单位","Used unit")}">${unitOpt(FAM_UNITS[fam], l.unit)}</select></div></label>
+        <div class="lc-cost"><span class="label">${L("成本","Cost")}</span><b id="c-cost-${ix}">${isFinite(c)?money(c):"—"}</b></div>
+      </div>
+    </div>`;
+  }).join("");
+  const ps = d.isNew ? [] : dishPhotos(d.id);
+  return `
+  ${stampHtml(d)}
+  <section class="section">
+    <div class="sec-head"><h2>${L("食材","Ingredients")}<small>${d.lines.filter(l=>l.name.trim()).length} ${L("样","items")}</small></h2></div>
+    ${lines}
+    <button class="btn ghost" data-act="addLine">${L("+ 加一样食材","+ Add ingredient")}</button>
+  </section>
+  <section class="section">
+    <div class="sec-head"><h2>${L("照片","Photos")}</h2></div>
+    ${d.isNew ? `<p class="note" style="text-align:left;margin:0">${L("先保存这道菜，就可以拍照记录。","Save the dish first, then add photos.")}</p>` :
+      `<div class="photos"><button class="addphoto" data-act="snap" data-dish="${d.id}">＋<br>${L("拍照","Photo")}</button>${ps.map(p=>`<img src="${p.data}" alt="" data-act="openPhoto" data-id="${p.id}">`).join("")}</div>`}
+  </section>
+  <section class="section">
+    <div class="panel" style="display:flex;flex-direction:column;gap:14px">
+      <label class="field">${lab("Sell","售价 "+CUR,"Selling price · "+CUR)}<input id="c-sell" class="num" inputmode="decimal" value="${esc(d.sell)}" placeholder="${L("可不填","optional")}"></label>
+      <div class="totals" id="c-totals">${totalsHtml(draftTotals())}</div>
+    </div>
+  </section>
+  <div class="actions"><button class="btn" data-act="saveDish">${d.isNew?L("保存","Save"):L("更新","Update")}</button></div>
+  ${d.isNew?"":`<div class="icon-actions">
+    <button class="icon-act" data-act="exportSlip" aria-label="${L("导出成本单","Export cost slip")}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"/><path d="M7.5 8.5 12 4l4.5 4.5"/><path d="M5 13v6h14v-6"/></svg><span>${L("导出","Export")}</span></button>
+    <button class="icon-act del" data-act="askDelDish" aria-label="${L("删除","Delete")}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 7h15"/><path d="M9.5 7V4.5h5V7"/><path d="M6.5 7l1 12.5h9l1-12.5"/><path d="M10.2 11v5.5M13.8 11v5.5"/></svg><span>${L("删除","Delete")}</span></button>
+  </div>`}
+  <div id="confirm" style="margin-top:10px"></div>`;
+}
+function totalsHtml(t){
+  return `<div><span>${L("成本","Cost")}</span><span class="grand">${money(t.total)}</span></div>
+    ${isFinite(t.pct)?`<div><span>${L("成本率","Food cost")}</span><span>${t.pct.toFixed(1)}% ${t.pct>35?`<span class="pill warn">${L("偏高","high")}</span>`:''}</span></div>
+    <div><span>${L("毛利","Profit")}</span><span>${money(t.sell - t.per)}</span></div>`:""}`;
+}
+function refreshCreateNumbers(){
+  draft.lines.forEach((l,ix)=>{ const el=$("#c-cost-"+ix); if(el){ const c=draftLineCost(l); el.textContent=isFinite(c)?money(c):"—"; } });
+  const tt=draftTotals(); const t=$("#c-totals"); if(t) t.innerHTML = totalsHtml(tt);
+  const m=$("#c-mini"); if(m) m.textContent = money(tt.total);
+}
+function goCreate(d){ picMenuOpen = 0; if(aiCtl) aiCtl.abort(); aiMsg=""; draft = d; keepDraft(); state.tab="create"; closeSheet(); render(); window.scrollTo({top:0}); }
+function saveDraft(){
+  const name = draft.name.trim();
+  if(!name){ toast(L("先写菜名","Name the dish first")); const dn=$("#dishName"); if(dn){ dn.scrollIntoView({block:"center",behavior:"smooth"}); dn.focus(); } return; }
+  const out = [];
+  for(let ix=0; ix<draft.lines.length; ix++){
+    const l = draft.lines[ix]; const n = l.name.trim(); if(!n) continue;
+    if(!(num(l.price)>=0) || !(num(l.qty)>0)){ toast(L(`「${n}」还没填买价或分量`,`${n}: add price and pack size`)); $("#c-price-"+ix).focus(); return; }
+    let ing = (l.ingId && state.items.find(i=>i.id===l.ingId && [i.name,i.nameZh,i.nameEn].includes(n))) || matchIng(n);
+    const body = {kind:"ing", price:String(l.price), qty:String(l.qty), unit:l.packUnit};
+    if(!ing){ ing = Object.assign({id:uid("ing"), name:n}, autoNames(n), body); put(ing); }
+    else if(ing.price!==body.price || ing.qty!==body.qty || ing.unit!==body.unit){ ing = Object.assign({}, ing, body); put(ing); }
+    l.ingId = ing.id;
+    out.push({ingId:ing.id, amount:String(l.amount), unit:l.unit});
+  }
+  put({id:draft.id, kind:"dish", name, portions:draft.portions, sell:draft.sell, art:draft.art||"", sticker:draft.sticker||"", show:draft.show||"", plate:draft.plate||"", lines:out, updated:Date.now()});
+  if(draft.pendingPhoto){ put({id:uid("photo"), kind:"photo", dishId:draft.id, at:Date.now(), note:"", data:draft.pendingPhoto}); draft.pendingPhoto=""; }
+  draft.isNew = false; keepDraft(); toast(L("已保存","Saved"));
+  state.tab = "cost"; render(); window.scrollTo({top:0});
+}
+function photoSheet(id){
+  const p = state.items.find(x=>x.id===id); if(!p) return;
+  const d = state.items.find(x=>x.id===p.dishId);
+  const t = d ? dishTotals(d) : null;
+  openSheet(`
+    <h3>${esc(d? d.name : L("作品记录","Journal"))}<small style="letter-spacing:.05em">${new Date(p.at).toLocaleDateString(LANG==="en"?"en-US":"zh-CN",{year:"numeric",month:"long",day:"numeric"})}</small></h3>
+    <img class="bigphoto" src="${p.data}" alt="">
+    ${t?`<p class="note">${L("这道菜现在的成本","Current cost")} ${money(t.total)}</p>`:""}
+    <label class="field">${lab("Note","备注")}<textarea id="p-note" placeholder="${L("火候、口感、下次要改的地方…","Heat, texture, what to change next time…")}">${esc(p.note||"")}</textarea></label>
+    <label class="field">${lab("Recipe","连到菜品","Linked recipe")}<select id="p-dish"><option value="">${L("不连菜品","None")}</option>${dishes().map(x=>`<option value="${x.id}" ${x.id===p.dishId?"selected":""}>${esc(x.name)}</option>`).join("")}</select></label>
+    <div class="actions"><button class="btn danger" data-act="askDelPhoto" data-id="${p.id}">${L("删除","Delete")}</button><button class="btn" data-act="savePhoto" data-id="${p.id}">${L("保存","Save")}</button></div>
+    <div id="confirm"></div>
+    <button class="btn ghost" data-act="close">${L("关闭","Close")}</button>`);
+}
+function askConfirm(text, act, id){
+  $("#confirm").innerHTML = `<div class="confirm"><span>${text}</span><div class="actions"><button class="btn ghost small" data-act="noConfirm">${L("不要","Keep")}</button><button class="btn danger small" data-act="${act}" data-id="${id||""}">${L("确定删除","Delete")}</button></div></div>`;
+  $("#confirm").scrollIntoView({block:"nearest"});
+}
+
+/* ---------- photos ---------- */
+let pendingDish = "";
+function compress(file){
+  return new Promise((res,rej)=>{
+    const url = URL.createObjectURL(file); const img = new Image();
+    img.onload = ()=>{
+      let max = 1000, q = .78, out = "";
+      for(let tries=0; tries<6; tries++){
+        const s = Math.min(1, max/Math.max(img.width,img.height));
+        const c = document.createElement("canvas"); c.width=Math.round(img.width*s); c.height=Math.round(img.height*s);
+        c.getContext("2d").drawImage(img,0,0,c.width,c.height);
+        out = c.toDataURL("image/jpeg", q);
+        if(out.length < 200000) break;
+        max *= .8; q = Math.max(.5, q-.06);
+      }
+      URL.revokeObjectURL(url); res(out);
+    };
+    img.onerror = ()=>{ URL.revokeObjectURL(url); rej(); };
+    img.src = url;
+  });
+}
+async function onStickerFile(e){
+  const f = e.target.files && e.target.files[0]; e.target.value = "";
+  if(!f || !draft) return;
+  try{
+    const data = await compress(f);
+    aiBlob = {dishId:draft.id, blob:dataUrlToBlob(data)};
+    if(draft.isNew) draft.pendingPhoto = data;
+    else put({id:uid("photo"), kind:"photo", dishId:draft.id, at:Date.now(), note:"", data});
+    keepDraft();
+    runSticker(data);
+  }catch(err){ toast(L("这张照片读不了，换一张试试","Couldn’t read that photo. Try another.")); }
+}
+$("#stInput").addEventListener("change", onStickerFile);
+function onReceiptFile(e){ const f = e.target.files && e.target.files[0]; e.target.value = ""; if(f) scanReceipt(f); }
+$("#rcCam").addEventListener("change", onReceiptFile);
+$("#rcPick").addEventListener("change", onReceiptFile);
+let pendingRestore = null;
+$("#restoreInput").addEventListener("change", async e=>{
+  const f = e.target.files && e.target.files[0]; e.target.value = ""; if(!f) return;
+  try{ const j = JSON.parse(await f.text()); const items = Array.isArray(j) ? j : j.items;
+    if(!Array.isArray(items) || !items.every(o=>o && typeof o.id==="string" && typeof o.kind==="string")) throw 0;
+    pendingRestore = items;
+    const n = items.filter(o=>o.kind==="dish").length, m = items.filter(o=>o.kind==="ing").length;
+    if($("#confirm")) $("#confirm").innerHTML = `<div class="confirm"><span>${L(`这个备份有 ${n} 道菜、${m} 样食材。导入后，同样的资料会被备份里的版本取代。`,`This backup has ${n} dishes and ${m} ingredients. Matching items will be replaced by the backup.`)}</span><div class="actions"><button class="btn ghost small" data-act="noConfirm">${L("不要","Cancel")}</button><button class="btn small" data-act="restoreGo">${L("导入","Import")}</button></div></div>`;
+  }catch(err){ toast(L("这不是有效的备份文件","That isn’t a valid backup file")); }
+});
+$("#stPick").addEventListener("change", onStickerFile);
+$("#aiInput").addEventListener("change", async e=>{
+  const f = e.target.files && e.target.files[0]; e.target.value = "";
+  if(!f || !draft) return;
+  try{
+    const data = await compress(f);
+    const blob = dataUrlToBlob(data);
+    aiBlob = {dishId:draft.id, blob};
+    if(draft.isNew) draft.pendingPhoto = data;
+    else put({id:uid("photo"), kind:"photo", dishId:draft.id, at:Date.now(), note:"", data});
+    keepDraft();
+    runAI(blob, true);
+  }catch(err){ toast(L("这张照片读不了，换一张试试","Couldn’t read that photo. Try another.")); }
+});
+$("#photoInput").addEventListener("change", async e=>{
+  const f = e.target.files && e.target.files[0]; e.target.value = "";
+  if(!f) return;
+  toast(L("处理照片中…","Processing photo…"));
+  try{
+    const data = await compress(f);
+    const p = {id:uid("photo"), kind:"photo", dishId:pendingDish||"", at:Date.now(), note:"", data};
+    await put(p);
+    toast(L("已记录","Photo saved"));
+    if(state.tab==="create" && draft && draft.id===p.dishId){ render(); }
+    else { closeSheet(); photoSheet(p.id); }
+  }catch(err){ toast(L("这张照片读不了，换一张试试","Couldn’t read that photo. Try another.")); }
+});
+
+/* ---------- events ---------- */
+function toast(t){ const old=document.querySelector(".toast"); if(old) old.remove(); const el=document.createElement("div"); el.className="toast"; el.setAttribute("role","status"); el.textContent=t; document.body.appendChild(el); setTimeout(()=>el.remove(),1800); }
+
+document.addEventListener("click", async e=>{
+  const tab = e.target.closest(".tab");
+  if(tab){ state.tab = tab.dataset.tab; render(); window.scrollTo({top:0}); return; }
+  const el = e.target.closest("[data-act]"); if(!el) return;
+  const act = el.dataset.act, id = el.dataset.id;
+  if(act==="closeBg"){ if(e.target===el) closeSheet(); return; }
+  switch(act){
+    case "close": closeSheet(); break;
+    case "newIng": ingSheet(null); break;
+    case "openIng": closeSheet(); ingSheet(id); break;
+    case "saveIng": {
+      const name=$("#f-name").value.trim(), alt=$("#f-alt").value.trim(), price=$("#f-price").value.trim(), qty=$("#f-qty").value.trim(), unit=$("#f-unit").value;
+      if(!name || !(num(price)>=0) || !(num(qty)>0)){ toast(L("请填好名称、价钱和分量","Fill in name, price and pack size")); break; }
+      const nm = LANG==="en" ? {nameEn:name, nameZh:alt} : {nameZh:name, nameEn:alt};
+      put(Object.assign({id, kind:"ing", name, price, qty, unit}, nm)); toast(L("已保存","Saved")); closeSheet();
+      break; }
+    case "askDelIng": { const n=+layer.dataset.used||0; askConfirm(n?L(`有 ${n} 道菜用到这样食材，删除后那几道菜会少算这一项。`,`${n} dish(es) use this. Deleting it removes it from their cost.`):L("删除这样食材？","Delete this ingredient?"),"delIng",id); break; }
+    case "delIng": del(id); closeSheet(); break;
+    case "noConfirm": $("#confirm").innerHTML=""; break;
+    case "newDish": goCreate(newDraft()); break;
+    case "openDish": { const d=state.items.find(x=>x.id===id); if(d) goCreate(draftFromDish(d)); break; }
+    case "addLine": { const last=draft.lines[draft.lines.length-1]; draft.lines.push(blankLine()); keepDraft(); render(); const el=$("#c-name-"+(draft.lines.length-1)); if(el){ el.focus(); el.scrollIntoView({block:"center"}); } break; }
+    case "rmLine": draft.lines.splice(+el.dataset.ix,1); if(!draft.lines.length) draft.lines.push(blankLine()); keepDraft(); render(); break;
+    case "saveDish": saveDraft(); break;
+    case "askDelDish": askConfirm(L("删除这道菜？照片会留在记录里。","Delete this dish? Its photos stay in the album."),"delDish",draft.id); break;
+    case "delDish": del(id); photos().filter(p=>p.dishId===id).forEach(p=>put(Object.assign({},p,{dishId:""}))); draft=newDraft(); keepDraft(); state.tab="cost"; render(); toast(L("已删除","Deleted")); break;
+    case "snap": pendingDish = el.dataset.dish || ""; $("#photoInput").click(); break;
+    case "openPhoto": closeSheet(); photoSheet(id); break;
+    case "savePhoto": { const p=state.items.find(x=>x.id===id); if(p){ put(Object.assign({},p,{note:$("#p-note").value, dishId:$("#p-dish").value})); } closeSheet(); toast(L("已保存","Saved")); break; }
+    case "askDelPhoto": askConfirm(L("删除这张照片？","Delete this photo?"),"delPhoto",id); break;
+    case "delPhoto": del(id); closeSheet(); break;
+    case "seed": seed(); break;
+    case "back": state.tab="cost"; render(); window.scrollTo({top:0}); break;
+    case "searchOn": state.searching=true; state.page=0; render(); { const i=$("#q-search"); if(i) i.focus(); } break;
+    case "searchOff": state.searching=false; state.q=""; state.page=0; render(); break;
+    case "pg": state.page = Math.max(0, state.page + (+el.dataset.d)); render(); window.scrollTo({top:0, behavior:"smooth"}); break;
+    case "aiSnap": $("#aiInput").click(); break;
+    case "aiRedraw": { const src = photoSource(draft); if(src) runAI(src, false); break; }
+    case "aiStop": if(aiCtl) aiCtl.abort(); break;
+    case "pickPlate": { draft.plate = el.dataset.v; keepDraft(); if(!draft.isNew){ const d=state.items.find(x=>x.id===draft.id); if(d) put(Object.assign({}, d, {plate:draft.plate})); } render(); break; }
+    case "cropUse": if(crop) useCrop(); break;
+    case "cropCancel": crop = null; closeSheet(); break;
+    case "stSnap": { picMenuOpen = 0; const src = photoSource(draft); if(src) runSticker(src); else $("#stInput").click(); break; }
+    case "stNew": case "stCam": picMenuOpen = 0; render(); $("#stInput").click(); break;
+    case "stAlbum": picMenuOpen = 0; render(); $("#stPick").click(); break;
+    case "show": { draft.show = el.dataset.v; keepDraft(); if(!draft.isNew){ const d=state.items.find(x=>x.id===draft.id); if(d) put(Object.assign({}, d, {show:draft.show})); } render(); break; }
+    case "menu": settingsSheet(); break;
+    case "gSignIn": googleSignIn(); break;
+    case "gSignOut": googleSignOut(); break;
+    case "localOnly": try{ localStorage.setItem(LOCAL_ONLY_KEY,"1"); }catch(e){} hideLogin(); fallback(); break;
+    case "scanReceipt": rcpt = null; openSheet(`<h3>${L("扫描收据","Scan receipt")}</h3><p class="note">${L("拍一张清楚、平放的收据，我会把食材、价钱和分量读出来，保存前给你检查。","Take a clear, flat photo of the receipt. Ingredients, prices and sizes are read for you to check before saving.")}</p><div class="picmenu"><button data-act="rcCamGo">${L("拍照","Take photo")}</button><button data-act="rcPickGo">${L("从相册选","Choose from album")}</button><button class="cancel" data-act="close">${L("取消","Cancel")}</button></div>`); break;
+    case "rcCamGo": $("#rcCam").click(); break;
+    case "addMenu":
+      if(!(sampleFn && aiImages)){ ingSheet(null); break; }
+      openSheet(`<h3>${L("添加食材","Add ingredients")}</h3><div class="picmenu">
+        <button data-act="rcPickGo">${L("从相册扫描收据","Scan a receipt from album")}</button>
+        <button data-act="manualIng">${L("自己输入","Enter manually")}</button>
+        <button class="cancel" data-act="close">${L("取消","Cancel")}</button></div>`); break;
+    case "manualIng": closeSheet(); ingSheet(null); break;
+    case "rcPickGo": $("#rcPick").click(); break;
+    case "rcStop": if(rcpt && rcpt.ctl) rcpt.ctl.abort(); break;
+    case "rcSave": saveReceipt(); break;
+    case "picMenu": picMenuOpen = picMenuOpen ? 0 : (stampSrc(draft) ? 1 : 2); render(); break;
+    case "picStep2": picMenuOpen = 2; render(); break;
+    case "picClose": picMenuOpen = 0; render(); break;
+    case "pickIng": pickIng(+el.dataset.ix, el.dataset.id); break;
+    case "backupOut": { const d=new Date(); const stamp=`${d.getFullYear()}${String(d.getMonth()+1).padStart(2,"0")}${String(d.getDate()).padStart(2,"0")}`;
+      const blob = new Blob([JSON.stringify({app:"kitchen-cost", version:1, exported:d.toISOString(), items:state.items})], {type:"application/json"});
+      saveFile(`kitchen-backup-${stamp}.json`, blob).then(()=>toast(L("已导出","Exported"))).catch(e=>{ if(!(e && e.code==="declined")) toast(L("导出失败","Couldn’t export")); }); break; }
+    case "backupIn": $("#restoreInput").click(); break;
+    case "restoreGo": { const items = pendingRestore || []; pendingRestore = null;
+      if(col){ items.forEach(o=>put(o)); }
+      else { const map = new Map(state.items.map(o=>[o.id,o])); items.forEach(o=>map.set(o.id,o)); state.items = [...map.values()]; await local.save(); }
+      closeSheet(); render(); toast(L("已导入","Imported")); break; }
+    case "exportSlip": { const d = state.items.find(x=>x.id===draft.id); if(d) exportSheet(d); break; }
+    case "slipSave": { if(!slipBlob) break;
+      saveFile(slipName, slipBlob).then(()=>toast(L("已保存","Saved"))).catch(e=>{ if(e && e.code==="declined") return; const s=$("#slip-status"); if(s) s.textContent = L("这里存不了，长按图片保存","Can’t save here. Press and hold the image instead."); });
+      break; }
+    case "pickLang": pendingLang = el.dataset.v; document.querySelectorAll('[data-act="pickLang"]').forEach(b=>b.setAttribute("aria-pressed", String(b.dataset.v===pendingLang))); { const n=$("#s-name"); if(n) n.dispatchEvent(new Event("input")); } break;
+    case "exportXlsx": exportExcel(); break;
+    case "saveSettings": {
+      const nm = $("#s-name").value.trim();
+      const st = Object.assign({}, settings(), {kind:"settings", name:nm, nameZh:nm, nameEn:nm});
+      put(st);
+      if(pendingLang && pendingLang!==LANG){ LANG = pendingLang; try{ localStorage.setItem("kitchen-cost-lang", LANG); }catch(e){}
+        if(draft) draft.lines.forEach(l=>{ const ing = l.ingId && state.items.find(i=>i.id===l.ingId); if(ing) l.name = ingName(ing); }); }
+      closeSheet(); render(); toast(L("已保存","Saved")); break; }
+    case "lang": LANG = LANG==="en"?"zh":"en"; try{ localStorage.setItem("kitchen-cost-lang", LANG); }catch(e){}
+      if(draft) draft.lines.forEach(l=>{ const ing = l.ingId && state.items.find(i=>i.id===l.ingId); if(ing) l.name = ingName(ing); }); closeSheet(); render(); break;
+  }
+});
+
+document.addEventListener("input", e=>{
+  const t = e.target;
+  if(t.dataset && t.dataset.rc !== undefined && rcpt){
+    const row = rcpt.rows[+t.dataset.rc]; const f = t.dataset.f;
+    if(f==="on"){ row.on = t.checked; drawReceipt(); return; }
+    row[f] = t.value; if(f==="name"){ const hit = matchIng(t.value); row.matchId = hit ? hit.id : ""; }
+    return;
+  }
+  if(t.id==="q-search"){ state.q=t.value; state.page=0; view.innerHTML = costView(); ensureScene(); return; }
+  if(t.id && t.id.startsWith("qc-")){
+    quick[t.id.slice(3)] = t.value;
+    if(t.id==="qc-unit"){ render(); return; }
+    $("#qc-out").textContent = money(quickResult()); return;
+  }
+  if(t.id && t.id.startsWith("c-") && draft){
+    if(t.id==="c-dname"){ draft.name=t.value; keepDraft(); return; }
+    if(t.id==="c-portions"){ draft.portions=t.value; keepDraft(); refreshCreateNumbers(); return; }
+    if(t.id==="c-sell"){ draft.sell=t.value; keepDraft(); refreshCreateNumbers(); return; }
+    const l = draft.lines[+t.dataset.ix]; const f = t.dataset.f; if(!l) return;
+    l[f] = t.value;
+    if(f==="name"){
+      const hit = matchIng(t.value);
+      if(l.ingId && (!hit || hit.id!==l.ingId)) l.ingId="";
+      showSuggest(+t.dataset.ix);
+    }
+    if(f==="packUnit" && UNITS[l.unit].fam!==UNITS[l.packUnit].fam){ l.unit=l.packUnit; keepDraft(); render(); return; }
+    keepDraft(); refreshCreateNumbers(); return;
+  }
+});
+let sx=null, sy=null;
+view.addEventListener("touchstart", e=>{ if(state.tab!=="cost") return; const t=e.touches[0]; sx=t.clientX; sy=t.clientY; }, {passive:true});
+view.addEventListener("touchend", e=>{
+  if(sx===null) return; const t=e.changedTouches[0]; const dx=t.clientX-sx, dy=t.clientY-sy; sx=null;
+  if(Math.abs(dx)>60 && Math.abs(dx)>Math.abs(dy)*1.5){ const b=document.querySelector(`.pager [data-d="${dx<0?1:-1}"]`); if(b && !b.disabled) b.click(); }
+}, {passive:true});
+document.addEventListener("input", e=>{ if(e.target.id==="dishName" && draft){ draft.name = e.target.textContent.replace(/\s+/g," ").trim().slice(0,60); keepDraft(); } });
+document.addEventListener("keydown", e=>{ if(e.target.id==="dishName" && e.key==="Enter"){ e.preventDefault(); e.target.blur(); } });
+document.addEventListener("paste", e=>{ if(e.target.id!=="dishName") return; e.preventDefault(); const t=(e.clipboardData||window.clipboardData).getData("text").replace(/\s+/g," "); document.execCommand("insertText", false, t); });
+document.addEventListener("focusout", e=>{ if(e.target.id==="dishName" && draft) e.target.textContent = draft.name || ""; });
+document.addEventListener("keydown", e=>{ if(e.key==="Escape"){ if(layer.innerHTML) closeSheet(); else if(state.searching){ state.searching=false; state.q=""; render(); } } });
+
+async function seed(){
+  const egg = {id:uid("ing"), kind:"ing", nameZh:"鸡蛋", nameEn:"Eggs", name:L("鸡蛋","Eggs"), price:"30", qty:"50", unit:"pcs"};
+  const milk = {id:uid("ing"), kind:"ing", nameZh:"牛奶", nameEn:"Milk", name:L("牛奶","Milk"), price:"15", qty:"1000", unit:"ml"};
+  await put(egg); await put(milk);
+  await put({id:uid("dish"), kind:"dish", name:L("冰淇淋（例子）","Ice cream (example)"), portions:"1", sell:"", updated:Date.now(),
+    lines:[{ingId:egg.id, amount:"1", unit:"pcs"},{ingId:milk.id, amount:"30", unit:"ml"}]});
+  toast(L("已放入例子，可以改或删除","Example added. Edit or delete it anytime."));
+}
+
+render();
+boot();
+})();
+</script>
+
+<script>
+if("serviceWorker" in navigator){ window.addEventListener("load", ()=>{ navigator.serviceWorker.register("sw.js").catch(()=>{}); }); }
+</script>
+</body>
+</html>
